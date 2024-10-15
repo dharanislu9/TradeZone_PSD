@@ -1,32 +1,30 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors');
-require('dotenv').config(); // Load environment variables
-
+const dotenv = require('dotenv'); // Load environment variables
 const userRoutes = require('./routes/user'); // Import user routes
+const cors = require('cors');
 
+dotenv.config(); // Configure dotenv
 const app = express();
-const PORT = process.env.PORT || 5001;
+app.use(express.json());
 
-// Middleware
-app.use(cors());
-app.use(express.json()); // To parse JSON bodies
+// CORS middleware setup
+app.use(cors({
+    origin: 'http://localhost:3000', // Allow requests from your frontend
+    methods: ['GET', 'POST'], // Allow specific HTTP methods
+    credentials: true // Allow credentials if needed
+}));
 
-// MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-  .then(() => console.log('MongoDB connected successfully'))
-  .catch(err => console.log('MongoDB connection error:', err));
+// Connect to database (MongoDB)
+mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+    .then(() => console.log('MongoDB connected'))
+    .catch(err => console.error('MongoDB connection error:', err));
 
-// Routes
-app.use('/api/users', userRoutes); // Set up user routes
-app.get('/', (req, res) => {
-  res.send('Welcome to TradeZone API');
-});
+// Use user routes with a prefix
+app.use('/api/users', userRoutes); // This line adds the '/api/users' prefix
 
 // Start the server
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+    console.log(`Backend server running on http://localhost:${PORT}`);
 });
