@@ -1,56 +1,48 @@
+
 import React, { useState } from 'react';
-import './Register.css'; // Import your CSS file
-import { Link, useNavigate } from 'react-router-dom'; // Import useNavigate
+import axios from 'axios';
+import './Register.css'; 
+import { Link, useNavigate } from 'react-router-dom'; 
 
 const Register = () => {
-  // State for form fields
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
-  // Initialize useNavigate
   const navigate = useNavigate();
 
-  // Handle form submission
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-
-    // Check if passwords match
-    if (password !== confirmPassword) {
-      alert("Passwords do not match");
-      return;
-    }
-
-    // Send a POST request to the backend
-    const response = await fetch('http://localhost:5000/api/users/register', { // Ensure correct URL
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        firstname: firstName,
-        lastname: lastName,
-        email: email,
-        password: password,
-      }),
-    });
-
-    const data = await response.json();
-
-    if (response.ok) {
-      console.log('Registration successful:', data);
+  const handleRegister = async (e) => {
+    e.preventDefault();
+  
+    try {
+      const response = await axios.post('http://localhost:5500/api/auth/signup', {
+        firstName, // Make sure these field names match your backend expectations
+        lastName,
+        email,
+        password,
+        confirmPassword,
+      });
+  
+      setSuccess(response.data.message); // Show success message
+      console.log('Registration successful:', response.data.message);
+  
       // Redirect to the login page after successful registration
-      navigate('/login');
-    } else {
-      console.error('Error registering:', data);
-      alert(data.message || 'Registration failed');
+      setTimeout(() => {
+        navigate('/login'); // Redirect to the login page
+      }, 2000); // Add a 2-second delay for the user to see the success message
+    } catch (error) {
+      console.error('Registration failed:', error);
+      setError(error.response?.data?.error || 'Registration failed. Please try again.');
     }
   };
+  
 
   return (
-    <form className="form" onSubmit={handleSubmit}>
+    <form className="form" onSubmit={handleRegister}>
       <p className="title">Register</p>
       <p className="message">Signup now and get full access to our app.</p>
       <div className="flex">
@@ -63,7 +55,7 @@ const Register = () => {
             value={firstName}
             onChange={(e) => setFirstName(e.target.value)}
           />
-          <span>Firstname</span>
+          <span>First Name</span>
         </label>
 
         <label>
@@ -75,7 +67,7 @@ const Register = () => {
             value={lastName}
             onChange={(e) => setLastName(e.target.value)}
           />
-          <span>Lastname</span>
+          <span>Last Name</span>
         </label>
       </div>
 
@@ -115,8 +107,10 @@ const Register = () => {
         <span>Confirm Password</span>
       </label>
       
-      <button className="submit" type="submit">Submit</button>
+      <button className="submit" type="submit">Register</button>
       <p className="signin">Already have an account? <Link to="/login">Signin</Link></p>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {success && <p style={{ color: 'green' }}>{success}</p>}
     </form>
   );
 };

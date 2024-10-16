@@ -1,35 +1,57 @@
-import React from 'react';
-import './Login.css'; // Import your CSS file
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import './Login.css';
 
 const Login = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+
+    try {
+      const response = await axios.post('http://localhost:5500/api/auth/login', {
+        email,
+        password,
+      });
+
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.user)); 
+
+      alert(response.data.message);
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Login failed:', error);
+      setError(error.response?.data?.error || 'Login failed. Please try again.');
+    }
+  };
+
   return (
-    <div className="wrapper">
-      <form action="">
-        <p className="form-login">Login</p>
-        
-        <div className="input-box">
-          <input required placeholder="Username" type="text" />
-        </div>
-        
-        <div className="input-box">
-          <input required placeholder="Password" type="password" />
-        </div>
-        
-        <div className="remember-forgot">
-          <label>
-            <input type="checkbox" /> Remember Me
-          </label>
-          <Link to="/forgot-password">Forgot Password?</Link>
-        </div>
-        
-        <button className="btn" type="submit">Login</button>
-        
-        <div className="register-link">
-          <p>Don’t have an account? <Link to="/register">Register</Link></p>
-        </div>
-      </form>
-    </div>
+    <form className="login-form" onSubmit={handleLogin}> {/* Scoped class for login */}
+      <h2>Login</h2>
+      <input
+        type="email"
+        placeholder="Enter Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        required
+        className="login-input"
+      />
+      <input
+        type="password"
+        placeholder="Enter Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        required
+        className="login-input"
+      />
+      <button type="submit" className="login-button">Login</button>
+
+      {error && <p className="login-error">{error}</p>}
+    </form>
   );
 };
 
