@@ -11,23 +11,24 @@ const Login = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-
+  
     try {
       const response = await axios.post('http://localhost:5500/api/auth/login', {
         email,
         password,
       });
-
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user)); 
-
+  
+      localStorage.setItem('token', response.data.token); // Save the token
+      localStorage.setItem('user', JSON.stringify(response.data.user)); // Optionally store user data
+  
       alert(response.data.message);
-      navigate('/dashboard');
+      navigate('/dashboard'); // Navigate to the dashboard
     } catch (error) {
       console.error('Login failed:', error);
       setError(error.response?.data?.error || 'Login failed. Please try again.');
     }
   };
+  
 
   return (
     <form className="login-form" onSubmit={handleLogin}> {/* Scoped class for login */}

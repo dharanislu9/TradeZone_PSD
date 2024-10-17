@@ -4,8 +4,11 @@ const mongoose = require('mongoose');
 const userSchema = new mongoose.Schema({
   firstName: { type: String, required: true },
   lastName: { type: String, required: true },
-  email: { type: String, required: true, unique: true }, // Ensure email is unique
-  password: { type: String, required: true }, // Hashed password will be stored here
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  username: { type: String, required: true },  // Ensure this field is added
+  phone: { type: String, required: true },     // Ensure this field is added
+  address: { type: String, required: true },   // Ensure this field is added
 });
 
 const User = mongoose.model('User', userSchema);

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import axios from 'axios';
 import './Register.css'; 
@@ -10,6 +9,9 @@ const Register = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [username, setUsername] = useState(''); // New field
+  const [phone, setPhone] = useState('');       // New field
+  const [address, setAddress] = useState('');   // New field
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
@@ -20,26 +22,27 @@ const Register = () => {
   
     try {
       const response = await axios.post('http://localhost:5500/api/auth/signup', {
-        firstName, // Make sure these field names match your backend expectations
+        firstName,
         lastName,
         email,
         password,
         confirmPassword,
+        username, // Send new fields to backend
+        phone,
+        address,
       });
   
       setSuccess(response.data.message); // Show success message
       console.log('Registration successful:', response.data.message);
   
-      // Redirect to the login page after successful registration
       setTimeout(() => {
         navigate('/login'); // Redirect to the login page
-      }, 2000); // Add a 2-second delay for the user to see the success message
+      }, 2000);
     } catch (error) {
       console.error('Registration failed:', error);
       setError(error.response?.data?.error || 'Registration failed. Please try again.');
     }
   };
-  
 
   return (
     <form className="form" onSubmit={handleRegister}>
@@ -49,7 +52,6 @@ const Register = () => {
         <label>
           <input 
             required 
-            placeholder="" 
             type="text" 
             className="input" 
             value={firstName}
@@ -61,7 +63,6 @@ const Register = () => {
         <label>
           <input 
             required 
-            placeholder="" 
             type="text" 
             className="input" 
             value={lastName}
@@ -74,7 +75,6 @@ const Register = () => {
       <label>
         <input 
           required 
-          placeholder="" 
           type="email" 
           className="input" 
           value={email}
@@ -86,7 +86,6 @@ const Register = () => {
       <label>
         <input 
           required 
-          placeholder="" 
           type="password" 
           className="input" 
           value={password}
@@ -98,7 +97,6 @@ const Register = () => {
       <label>
         <input 
           required 
-          placeholder="" 
           type="password" 
           className="input" 
           value={confirmPassword}
@@ -107,6 +105,40 @@ const Register = () => {
         <span>Confirm Password</span>
       </label>
       
+      {/* New Fields */}
+      <label>
+        <input 
+          required 
+          type="text" 
+          className="input" 
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
+        <span>Username</span>
+      </label>
+
+      <label>
+        <input 
+          required 
+          type="tel" 
+          className="input" 
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+        />
+        <span>Phone Number</span>
+      </label>
+
+      <label>
+        <input 
+          required 
+          type="text" 
+          className="input" 
+          value={address}
+          onChange={(e) => setAddress(e.target.value)}
+        />
+        <span>Address</span>
+      </label>
+
       <button className="submit" type="submit">Register</button>
       <p className="signin">Already have an account? <Link to="/login">Signin</Link></p>
       {error && <p style={{ color: 'red' }}>{error}</p>}
