@@ -36,8 +36,11 @@ const Register = () => {
       console.log('Registration successful:', response.data.message);
   
       setTimeout(() => {
+        console.log('Redirecting to login after registration');
         navigate('/login'); // Redirect to the login page
-      }, 2000);
+      }, 3000); // Increase the delay to 3 seconds for testing
+      // Increase the delay to 3 seconds for testing
+      
     } catch (error) {
       console.error('Registration failed:', error);
       setError(error.response?.data?.error || 'Registration failed. Please try again.');

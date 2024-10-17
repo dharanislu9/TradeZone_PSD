@@ -17,17 +17,25 @@ const Login = () => {
         email,
         password,
       });
-  
-      localStorage.setItem('token', response.data.token); // Save the token
-      localStorage.setItem('user', JSON.stringify(response.data.user)); // Optionally store user data
-  
-      alert(response.data.message);
-      navigate('/dashboard'); // Navigate to the dashboard
+      
+      console.log('Response received from login API:', response.data); // Log the response
+      
+      if (response.data.token) {
+        console.log('Token received:', response.data.token);
+        localStorage.setItem('token', response.data.token); // Save the token
+        localStorage.setItem('user', JSON.stringify(response.data.user)); // Optionally store user data
+        alert(response.data.message);
+        navigate('/dashboard'); // Navigate to the dashboard
+      } else {
+        console.error('No token received');
+        setError('Login failed. No token received.');
+      }
     } catch (error) {
       console.error('Login failed:', error);
       setError(error.response?.data?.error || 'Login failed. Please try again.');
     }
   };
+  
   
 
   return (
