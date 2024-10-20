@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import './Login.css';
 
@@ -11,56 +10,71 @@ const Login = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-  
+
     try {
-      const response = await axios.post('http://localhost:5500/api/auth/login', {
-        email,
-        password,
+      const response = await fetch('http://localhost:5500/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
       });
-      
-      console.log('Response received from login API:', response.data); // Log the response
-      
-      if (response.data.token) {
-        console.log('Token received:', response.data.token);
-        localStorage.setItem('token', response.data.token); // Save the token
-        localStorage.setItem('user', JSON.stringify(response.data.user)); // Optionally store user data
-        alert(response.data.message);
-        navigate('/dashboard'); // Navigate to the dashboard
-      } else {
-        console.error('No token received');
-        setError('Login failed. No token received.');
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || 'Login failed. Please try again.');
+        return;
       }
-    } catch (error) {
-      console.error('Login failed:', error);
-      setError(error.response?.data?.error || 'Login failed. Please try again.');
+
+      // Store token in localStorage
+      localStorage.setItem('token', data.token);
+
+      // Redirect to home page after successful login
+      navigate('/'); // Change '/dashboard' to '/' to redirect to home
+    } catch (err) {
+      console.error('Network error:', err);
+      setError('Network error. Please try again later.');
     }
   };
-  
-  
 
   return (
-    <form className="login-form" onSubmit={handleLogin}> {/* Scoped class for login */}
-      <h2>Login</h2>
-      <input
-        type="email"
-        placeholder="Enter Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-        className="login-input"
-      />
-      <input
-        type="password"
-        placeholder="Enter Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        required
-        className="login-input"
-      />
-      <button type="submit" className="login-button">Login</button>
-
-      {error && <p className="login-error">{error}</p>}
-    </form>
+    <div className="login-container">
+      <h2 className="form-login">Login</h2>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+      <form onSubmit={handleLogin}>
+        <div className="input-box">
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </div>
+        <div className="input-box">
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
+        <button type="submit" className="btn">Login</button>
+      </form>
+      <div className="remember-forgot">
+        <label>
+          <input type="checkbox" /> Remember Me
+        </label>
+        <a href="#">Forgot Password?</a>
+      </div>
+      <div className="register-link">
+        <p>
+          Don't have an account? <a href="/register">Register</a>
+        </p>
+      </div>
+    </div>
   );
 };
 
