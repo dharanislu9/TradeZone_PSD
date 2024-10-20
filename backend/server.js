@@ -4,6 +4,9 @@ const dotenv = require('dotenv'); // Load environment variables
 const userRoutes = require('./routes/user'); // Import user routes
 const cors = require('cors');
 
+// Import the Product model
+const Product = require('./models/product'); // Make sure to create this model file
+
 dotenv.config(); // Configure dotenv
 const app = express();
 app.use(express.json());
@@ -22,6 +25,19 @@ mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTop
 
 // Use user routes with a prefix
 app.use('/api/users', userRoutes); // This line adds the '/api/users' prefix
+
+// POST route for saving product details
+app.post('/api/products', async (req, res) => {
+    const { description, price, worth } = req.body;
+
+    try {
+        const newProduct = new Product({ description, price, worth });
+        await newProduct.save();
+        res.status(201).json({ message: 'Product saved successfully!', product: newProduct });
+    } catch (error) {
+        res.status(400).json({ message: 'Error saving product', error });
+    }
+});
 
 // Start the server
 const PORT = process.env.PORT || 5000;
