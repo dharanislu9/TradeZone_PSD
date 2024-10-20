@@ -42,7 +42,7 @@ const Register = () => {
     if (response.ok) {
       console.log('Registration successful:', data);
       // Redirect to the login page after successful registration
-      navigate('/login');
+      navigate('/');
     } else {
       console.error('Error registering:', data);
       alert(data.message || 'Registration failed');
@@ -116,7 +116,7 @@ const Register = () => {
       </label>
       
       <button className="submit" type="submit">Submit</button>
-      <p className="signin">Already have an account? <Link to="/login">Signin</Link></p>
+      <p className="signin">Already have an account? <Link to="/">Signin</Link></p>
     </form>
   );
 };
