@@ -6,6 +6,7 @@ const cors = require('cors');
 
 dotenv.config(); // Configure dotenv
 const app = express();
+const router =express.Router();
 app.use(express.json());
 
 // CORS middleware setup
@@ -15,6 +16,11 @@ app.use(cors({
     credentials: true // Allow credentials if needed
 }));
 
+const documentation = router.get("/",(req,res)=>{
+    res.send("API Documentation page")
+})
+
+app.use("/", documentation)
 // Connect to database (MongoDB)
 mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => console.log('MongoDB connected'))
