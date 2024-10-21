@@ -5,9 +5,9 @@ import { Link } from 'react-router-dom';
 const Login = () => {
   return (
     <div className="wrapper">
-      <form action="">
+      <form action="/HomePage">
         <p className="form-login">Login</p>
-        
+  
         <div className="input-box">
           <input required placeholder="Username" type="text" />
         </div>
