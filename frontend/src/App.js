@@ -1,28 +1,26 @@
-import React, { useState } from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+// src/App.js
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import HomePage from './components/HomePage';
-import ProductDetails from './components/ProductDetails';
-import Register from './components/Register';
-import Login from './components/Login';
-import ForgotPassword from './components/ForgotPassword'; 
+import RegisterForm from './components/Register';
+import LoginForm from './components/Login';
+import Profile from './components/Profile';
+import ForgotPassword from './components/ForgotPassword';
+import './App.css';
 
 const App = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // State for login status
-
-  const handleLogout = () => {
-    setIsLoggedIn(false); // Update login status
-  };
-
   return (
     <Router>
-      <Routes>
-        <Route path="/" element={<Login setIsLoggedIn={setIsLoggedIn} />} />
-        <Route path="/product/:id" element={<ProductDetails />} />
-        {/* <Route path="/Login" element={<Login />} /> */}
-        <Route path="/register" element={<Register />} />
-        <Route path="/home" element={<HomePage handleLogout={handleLogout} />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} /> {/* Forgot password route */}
-      </Routes>
+      <div className="App">
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/register" element={<RegisterForm />} />
+          <Route path="/login" element={<LoginForm />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </div>
     </Router>
   );
 };

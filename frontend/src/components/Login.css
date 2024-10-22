@@ -1,4 +1,4 @@
-.wrapper {
+.login-container {
   width: 420px;
   background: linear-gradient(
     135deg,
@@ -11,7 +11,7 @@
   border-radius: 16px;
   padding: 40px 50px;
   box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.2);
-  margin: 50px auto; 
+  margin: 50px auto;
 }
 
 .form-login {
@@ -45,7 +45,7 @@
 }
 
 .input-box input:focus {
-  border-color: #00ccff; 
+  border-color: #00ccff;
 }
 
 .input-box input::placeholder {
