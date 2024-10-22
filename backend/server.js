@@ -12,6 +12,7 @@ const nodemailer = require('nodemailer');
 dotenv.config();
 
 const app = express();
+const router =express.Router();
 const PORT = process.env.PORT || 5500;
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/yourDatabaseName';
@@ -102,6 +103,15 @@ app.post('/login', async (req, res) => {
     return res.status(400).json({ error: 'Email and password are required' });
   }
 
+const documentation = router.get("/",(req,res)=>{
+    res.send("API Documentation page")
+})
+
+app.use("/", documentation)
+// Connect to database (MongoDB)
+mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+    .then(() => console.log('MongoDB connected'))
+    .catch(err => console.error('MongoDB connection error:', err));
   try {
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ error: 'User not found' });
