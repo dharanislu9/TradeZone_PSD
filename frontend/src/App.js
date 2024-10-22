@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import LandingPage from './components/LandingPage'
 import HomePage from './components/HomePage';
-import ProductDetails from './components/ProductDetails';
 import Register from './components/Register';
 import Login from './components/Login';
+import SellerPage from './components/SellerPage';
+import ProductDetails from './components/ProductDetails';
+import RegisterForm from './components/Register';
+import LoginForm from './components/Login';
 import ForgotPassword from './components/ForgotPassword'; 
 
 const App = () => {
@@ -16,6 +20,11 @@ const App = () => {
   return (
     <Router>
       <Routes>
+      <Route path="/" element={<LandingPage />} />
+        <Route path="/HomePage" element={<HomePage />} />
+        <Route path="/Register" element={<Register />} />
+        <Route path="/Login" element={<Login />} />
+        <Route path="/SellerPage" element={<SellerPage/>} />
         <Route path="/" element={<Login setIsLoggedIn={setIsLoggedIn} />} />
         <Route path="/product/:id" element={<ProductDetails />} />
         {/* <Route path="/Login" element={<Login />} /> */}
