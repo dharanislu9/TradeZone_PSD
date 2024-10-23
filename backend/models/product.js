@@ -1,5 +1,5 @@
-// models/Product.js
 const mongoose = require('mongoose');
+
 
 const productSchema = new mongoose.Schema({
   description: { type: String, required: true },
@@ -7,6 +7,8 @@ const productSchema = new mongoose.Schema({
   worth: { type: Number, default: 50 },
 });
 
+
 const Product = mongoose.model('Product', productSchema);
 module.exports = Product;
+
 
