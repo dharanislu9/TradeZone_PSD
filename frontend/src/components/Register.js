@@ -24,7 +24,7 @@ const Register = () => {
     }
 
     // Send a POST request to the backend
-    const response = await fetch('http://localhost:5000/api/users/register', { // Ensure correct URL
+    const response = await fetch('http://localhost:8000/api/users/register', { // Ensure correct URL
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
