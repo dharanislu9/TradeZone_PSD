@@ -265,3 +265,49 @@ describe('Profile Component', () => {
 
   
 });
+
+//dharani - test for displaying a success message after registration
+test('displays success message after successful registration', async () => {
+  global.fetch = jest.fn(() =>
+    Promise.resolve({
+  
+      ok: true,
+      json: () => Promise.resolve({ message: 'Registration successful' }),
+    })
+  );
+
+  render(
+    <Router>
+      <Register />
+    </Router>
+  );
+
+  // Fill in the registration form as previously done
+  fireEvent.change(screen.getByPlaceholderText('First Name'), { target: { value: 'John' } });
+  fireEvent.change(screen.getByPlaceholderText('Last Name'), { target: { value: 'Doe' } });
+  fireEvent.change(screen.getByPlaceholderText('Email'), { target: { value: 'john.doe@example.com' } });
+  fireEvent.change(screen.getByPlaceholderText('Password'), { target: { value: 'password123' } });
+  fireEvent.change(screen.getByPlaceholderText('Confirm Password'), { target: { value: 'password123' } });
+  fireEvent.change(screen.getByPlaceholderText('Address'), { target: { value: '123 Main St' } });
+  fireEvent.change(screen.getByPlaceholderText('Phone Number'), { target: { value: '1234567890' } });
+  fireEvent.click(screen.getByText('Submit'));
+
+  await waitFor(() => {
+    expect(screen.getByText(/Registration successful/i)).toBeInTheDocument();
+  });
+});
+
+//Dharani - Test for form validation on empty fields when updating profile
+test('displays error message when fields are empty on update', async () => {
+  render(
+    <Router>
+      <Profile />
+    </Router>
+  );
+
+  fireEvent.click(screen.getByText('Update Profile'));
+
+  await waitFor(() => {
+    expect(screen.getByText(/Please fill in all fields/i)).toBeInTheDocument();
+  });
+});
