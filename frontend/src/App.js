@@ -6,9 +6,8 @@ import Register from './components/Register';
 import Login from './components/Login';
 import SellerPage from './components/SellerPage';
 import ProductDetails from './components/ProductDetails';
-import RegisterForm from './components/Register';
-import LoginForm from './components/Login';
 import ForgotPassword from './components/ForgotPassword'; 
+import Profile from './components/Profile';
 
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false); // State for login status
@@ -30,6 +29,7 @@ const App = () => {
         {/* <Route path="/Login" element={<Login />} /> */}
         <Route path="/register" element={<Register />} />
         <Route path="/home" element={<HomePage handleLogout={handleLogout} />} />
+        <Route path="/profile" element={<Profile />} />
         <Route path="/forgot-password" element={<ForgotPassword />} /> {/* Forgot password route */}
       </Routes>
     </Router>
