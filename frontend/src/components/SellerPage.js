@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './SellerPage.css'; // Import your CSS file
 
+
 const SellerPage = () => {
   // State to hold the form data
   const [formData, setFormData] = useState({
@@ -8,6 +9,7 @@ const SellerPage = () => {
     description: '',
     price: '',
   });
+
 
   // Handle input changes
   const handleInputChange = (e) => {
@@ -18,6 +20,7 @@ const SellerPage = () => {
     });
   };
 
+
   // Handle image upload
   const handleImageUpload = (e) => {
     setFormData({
@@ -26,12 +29,14 @@ const SellerPage = () => {
     });
   };
 
+
   // Handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
     // Form submit logic here
     console.log('Form Data:', formData);
   };
+
 
   return (
     <div className="seller-page">
@@ -40,15 +45,16 @@ const SellerPage = () => {
         {/* Image Upload Field */}
         <div className="form-group">
           <label htmlFor="image">Product Image:</label>
-          <input 
-            type="file" 
-            id="image" 
-            name="image" 
-            accept="image/*" 
-            onChange={handleImageUpload} 
+          <input
+            type="file"
+            id="image"
+            name="image"
+            accept="image/*"
+            onChange={handleImageUpload}
             required
           />
         </div>
+
 
         {/* Description Field */}
         <div className="form-group">
@@ -62,6 +68,7 @@ const SellerPage = () => {
             required
           />
         </div>
+
 
         {/* Price Field */}
         <div className="form-group">
@@ -78,11 +85,13 @@ const SellerPage = () => {
           />
         </div>
 
+
         {/* Submit Button */}
         <button type="submit" className="submit-button">Submit Product</button>
       </form>
     </div>
   );
 };
+
 
 export default SellerPage;

@@ -62,13 +62,16 @@
 }
 
 .worth-slider input[type="range"] {
-  -webkit-appearance: none; /* Remove default styling */
-  width: 100%; /* Full width */
-  height: 5px; /* Height of the slider */
-  background: #c8e6c9; /* Slider track color */
-  border-radius: 5px; /* Rounded slider track */
-  outline: none; /* Remove outline on focus */
+  -webkit-appearance: none; /* Chrome, Safari, newer versions of Edge */
+  -moz-appearance: none; /* Firefox */
+  appearance: none; /* Standard */
+  width: 100%;
+  height: 5px;
+  background: #c8e6c9;
+  border-radius: 5px;
+  outline: none;
 }
+
 
 .worth-slider input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none; /* Remove default styling */

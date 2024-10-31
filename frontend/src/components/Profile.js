@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Profile.css';
 
+
 const Profile = () => {
   const [user, setUser] = useState({
     firstName: '',
@@ -17,16 +18,19 @@ const Profile = () => {
   const [success, setSuccess] = useState('');
   const navigate = useNavigate();
 
+
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch('http://localhost:5500/user', {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        });
+const response = await fetch('http://localhost:5001/user', {
+  method: 'GET',
+  headers: {
+    'Authorization': `Bearer ${token}`,
+  },
+});
+
+
 
         if (!response.ok) throw new Error('Failed to fetch user data');
         const data = await response.json();
@@ -38,8 +42,10 @@ const Profile = () => {
       }
     };
 
+
     fetchUserData();
   }, []);
+
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -51,10 +57,12 @@ const Profile = () => {
     }
   };
 
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setUser({ ...user, [name]: value });
   };
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -64,6 +72,7 @@ const Profile = () => {
     formData.append('email', user.email);
     formData.append('phone', user.phone);
     if (image) formData.append('image', image);
+
 
     try {
       const token = localStorage.getItem('token');
@@ -75,6 +84,7 @@ const Profile = () => {
         body: formData,
       });
 
+
       if (!response.ok) throw new Error('Profile update failed');
       setSuccess('Profile updated successfully!');
     } catch (err) {
@@ -82,6 +92,7 @@ const Profile = () => {
       setError('Error updating profile.');
     }
   };
+
 
   return (
     <div className="profile-container">
@@ -101,5 +112,6 @@ const Profile = () => {
     </div>
   );
 };
+
 
 export default Profile;
