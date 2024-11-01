@@ -9,9 +9,6 @@ import SellerPage from './components/SellerPage';
 import LandingPage from './components/LandingPage';
 import Profile from './components/Profile'; // Import the Profile component
 
-import ProductDetails from './components/ProductDetails';
-import ForgotPassword from './components/ForgotPassword'; 
-import Profile from './components/Profile';
 
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
@@ -45,11 +42,6 @@ const App = () => {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/seller-page" element={<SellerPage />} />
         <Route path="/profile" element={isLoggedIn ? <Profile /> : <Navigate to="/login" />} /> {/* Add this line */}
-        {/* <Route path="/Login" element={<Login />} /> */}
-        <Route path="/register" element={<Register />} />
-        <Route path="/home" element={<HomePage handleLogout={handleLogout} />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} /> {/* Forgot password route */}
       </Routes>
     </Router>
   );
