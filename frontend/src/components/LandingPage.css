@@ -1,0 +1,123 @@
+/* Navbar */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: #fff;
+  }
+  
+  .navbar-left,
+  .navbar-right {
+    display: flex;
+    align-items: center;
+  }
+  
+  .logo img {
+    height: 50px;
+  }
+  
+  .category-dropdown .dropdown-button {
+    background-color: transparent;
+    border: none;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .navbar-center {
+    display: flex;
+    align-items: center;
+  }
+  
+  .search-bar {
+    width: 300px;
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+  }
+  
+  .search-button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 5px;
+  }
+  
+  .become-seller {
+    background-color: black;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 5px;
+    margin-right: 20px;
+  }
+  
+  .user-icons i {
+    font-size: 24px;
+    margin-right: 10px;
+    position: relative;
+  }
+  
+  .user-icons span {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: red;
+    color: white;
+    border-radius: 50%;
+    font-size: 12px;
+    padding: 2px 6px;
+  }
+  
+  /* Updated Banner for Full Page Height */
+  .banner {
+    background-color: #007BFF; /* Blue background color */
+    height: 100vh; /* 100% of the viewport height */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: #fff; /* Ensures text color is visible on the background */
+  }
+  
+  .banner-content h1 {
+    font-size: 48px;
+    margin-bottom: 20px;
+  }
+  
+  .banner-content p {
+    font-size: 18px;
+    color: #fff; /* Ensure white text on blue background */
+    margin-bottom: 30px;
+  }
+
+  /* LandingPage.css */
+
+.navbar-right {
+  display: flex;
+  gap: 10px;
+}
+
+.become-seller, .login-btn {
+  padding: 10px 15px;
+  background-color: #000;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+}
+
+.become-seller:hover, .login-btn:hover {
+  background-color: #555;
+}
+
+  
+  .shop-now {
+    background-color: black;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  

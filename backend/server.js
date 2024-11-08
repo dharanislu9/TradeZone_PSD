@@ -12,7 +12,7 @@ const nodemailer = require('nodemailer');
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5500;
+const PORT = process.env.PORT || 5001;
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/yourDatabaseName';
 
@@ -47,7 +47,7 @@ const storage = multer.diskStorage({
 });
 
 const imageFilter = (req, file, cb) => {
-  if (!file.mimetype.startsWith('image/')) {
+  if (file && !file.mimetype.startsWith('image/')) {
     return cb(new Error('Only image files are allowed'), false);
   }
   cb(null, true);
@@ -58,15 +58,15 @@ const upload = multer({ storage: storage, fileFilter: imageFilter });
 // Middleware
 app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
 app.use(express.json());
-app.use('/uploads', express.static('uploads'));
+app.use('/uploads', express.static('uploads')); // Serve the uploads folder
 
 // Register Route
 app.post('/register', upload.single('image'), async (req, res) => {
   const { firstName, lastName, email, password, phone, address } = req.body;
   const image = req.file;
 
-  if (!firstName || !lastName || !email || !password || !phone || !address || !image) {
-    return res.status(400).json({ error: 'All fields are required, including an image' });
+  if (!firstName || !lastName || !email || !password || !phone || !address) {
+    return res.status(400).json({ error: 'All fields are required except for the image' });
   }
 
   try {
@@ -83,7 +83,7 @@ app.post('/register', upload.single('image'), async (req, res) => {
       password: hashedPassword,
       phone,
       address,
-      imagePath: image.path,
+      imagePath: image ? `uploads/${image.filename}` : undefined,
     });
 
     await newUser.save();
@@ -110,7 +110,7 @@ app.post('/login', async (req, res) => {
     if (!isMatch) return res.status(400).json({ error: 'Invalid credentials' });
 
     const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '1h' });
-    res.status(200).json({ token, message: 'Login successful' });
+    res.status(200).json({ token, username: user.firstName, message: 'Login successful' });
   } catch (error) {
     console.error('Error during login:', error.message);
     res.status(500).json({ error: 'Internal server error' });
@@ -118,7 +118,7 @@ app.post('/login', async (req, res) => {
 });
 
 // Forgot Password Route
-app.post('/api/users/forgot-password', async (req, res) => {
+app.post('/forgot-password', async (req, res) => {
   const { email } = req.body;
 
   try {
@@ -132,7 +132,7 @@ app.post('/api/users/forgot-password', async (req, res) => {
     const transporter = nodemailer.createTransport({
       service: 'Gmail',
       auth: {
-        user: process.env.EMAIL, 
+        user: process.env.EMAIL,
         pass: process.env.EMAIL_PASSWORD,
       },
     });
@@ -178,17 +178,18 @@ app.put('/user', upload.single('image'), async (req, res) => {
     const decoded = jwt.verify(token, JWT_SECRET);
     const userId = decoded.userId;
 
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      {
-        firstName,
-        lastName,
-        email,
-        phone,
-        imagePath: image ? image.path : undefined,
-      },
-      { new: true }
-    );
+    const updateData = {
+      firstName,
+      lastName,
+      email,
+      phone,
+    };
+    
+    if (image) {
+      updateData.imagePath = `uploads/${image.filename}`;
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(userId, updateData, { new: true });
 
     res.status(200).json(updatedUser);
   } catch (error) {

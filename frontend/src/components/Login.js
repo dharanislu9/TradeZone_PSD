@@ -1,3 +1,4 @@
+// Login.js
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './Login.css';
@@ -12,7 +13,7 @@ const Login = () => {
     e.preventDefault();
 
     try {
-      const response = await fetch('http://localhost:5500/login', {
+      const response = await fetch('http://localhost:5001/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -20,18 +21,27 @@ const Login = () => {
         body: JSON.stringify({ email, password }),
       });
 
+      // Log raw response to inspect format
+      console.log('Raw response:', response);
+
       const data = await response.json();
+      
+      // Log parsed response data
+      console.log('Parsed response data:', data);
 
       if (!response.ok) {
+        console.log('Error from server:', data); // Debug log
         setError(data.error || 'Login failed. Please try again.');
         return;
       }
 
-      // Store token in localStorage
-      localStorage.setItem('token', data.token);
-
-      // Redirect to home page after successful login
-      navigate('/'); // Redirect to home page
+      if (data.token && data.username) {
+        localStorage.setItem('authToken', data.token);
+        localStorage.setItem('username', data.username);
+        navigate('/'); // Redirect to the homepage or dashboard after login
+      } else {
+        setError('Unexpected response from server.');
+      }
     } catch (err) {
       console.error('Network error:', err);
       setError('Network error. Please try again later.');
@@ -61,14 +71,11 @@ const Login = () => {
             required
           />
         </div>
+        <div className="forgot-password" style={{ textAlign: 'right' }}>
+          <Link to="/forgot-password">Forgot Password?</Link>
+        </div>
         <button type="submit" className="btn">Login</button>
       </form>
-      <div className="remember-forgot">
-        <label>
-          <input type="checkbox" /> Remember Me
-        </label>
-        <Link to="/forgot-password" className="forgot-password-link">Forgot Password?</Link>
-      </div>
       <div className="register-link">
         <p>
           Don't have an account? <Link to="/register">Register</Link>

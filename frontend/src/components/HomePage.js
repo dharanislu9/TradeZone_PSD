@@ -41,17 +41,16 @@ const HomePage = () => {
 
           {/* Right-side Buttons Container */}
           <div className="nav-buttons">
-            <Link to="/login" className="button login-btn">Login</Link>
             <button className="button" onClick={toggleDropdown}>
-                Profile
-              </button>
+              Profile
+            </button>
 
-              {isDropdownOpen && (
-                <div className="dropdown-menu">
-                  <Link to="/profile" className="dropdown-item">My Details</Link>
-                  <button className="dropdown-item" onClick={handleLogout}>Logout</button>
-                </div>
-              )}
+            {isDropdownOpen && (
+              <div className="dropdown-menu">
+                <Link to="/profile" className="dropdown-item">My Details</Link>
+                <button className="dropdown-item" onClick={handleLogout}>Logout</button>
+              </div>
+            )}
           </div>
         </div>
       </header>

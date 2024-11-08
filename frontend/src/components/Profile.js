@@ -1,4 +1,3 @@
-// Profile.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Profile.css';
@@ -20,8 +19,8 @@ const Profile = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const response = await fetch('http://localhost:5500/user', {
+        const token = localStorage.getItem('authToken');
+        const response = await fetch('http://localhost:5001/user', {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -31,7 +30,7 @@ const Profile = () => {
         if (!response.ok) throw new Error('Failed to fetch user data');
         const data = await response.json();
         setUser(data);
-        setImagePreview(`http://localhost:5500/${data.imagePath}`);
+        setImagePreview(`http://localhost:5001/${data.imagePath}`);
       } catch (err) {
         console.error('Error fetching user data:', err);
         setError('Could not load user data.');
@@ -66,8 +65,8 @@ const Profile = () => {
     if (image) formData.append('image', image);
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5500/user', {
+      const token = localStorage.getItem('authToken');
+      const response = await fetch('http://localhost:5001/user', {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -76,11 +75,19 @@ const Profile = () => {
       });
 
       if (!response.ok) throw new Error('Profile update failed');
+      const updatedUser = await response.json();
+      setUser(updatedUser);
       setSuccess('Profile updated successfully!');
     } catch (err) {
       console.error('Error updating profile:', err);
       setError('Error updating profile.');
     }
+  };
+
+  // Handle logout and navigate to the landing page
+  const handleLogout = () => {
+    localStorage.removeItem('authToken'); // Clear token
+    navigate('/'); // Redirect to the landing page
   };
 
   return (
@@ -96,8 +103,13 @@ const Profile = () => {
         <input type="tel" name="phone" value={user.phone} onChange={handleChange} placeholder="Phone" required />
         <input type="file" accept="image/*" onChange={handleImageChange} />
         <button type="submit">Update Profile</button>
+        <button type="button" onClick={() => navigate('/')}>Back to Home</button>
       </form>
-      <button onClick={() => navigate('/')}>Back to Home</button>
+
+      {/* Only "Logout" button */}
+      <div className="profile-actions">
+        <button className="action-button" onClick={handleLogout}>Logout</button>
+      </div>
     </div>
   );
 };
