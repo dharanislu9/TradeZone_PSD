@@ -30,10 +30,28 @@ const userSchema = new mongoose.Schema({
   phone: String,
   address: String,
   imagePath: String,
+  theme: { type: String, default: 'light' }, // Default theme set to 'light'
 });
 
-// User Model
 const User = mongoose.model('User', userSchema);
+
+// Middleware for verifying JWT tokens
+const verifyToken = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.status(403).json({ error: 'Authorization header missing' });
+  }
+
+  const token = authHeader.split(' ')[1];
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.userId = decoded.userId; // Attach user ID to request object
+    next();
+  } catch (error) {
+    console.error('JWT verification error:', error.message);
+    res.status(401).json({ error: 'Invalid token' });
+  }
+};
 
 // Configure multer for image uploads
 const storage = multer.diskStorage({
@@ -58,7 +76,7 @@ const upload = multer({ storage: storage, fileFilter: imageFilter });
 // Middleware
 app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
 app.use(express.json());
-app.use('/uploads', express.static('uploads')); // Serve the uploads folder
+app.use('/uploads', express.static('uploads'));
 
 // Register Route
 app.post('/register', upload.single('image'), async (req, res) => {
@@ -123,12 +141,10 @@ app.post('/forgot-password', async (req, res) => {
 
   try {
     const user = await User.findOne({ email });
-
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Sending reset email
     const transporter = nodemailer.createTransport({
       service: 'Gmail',
       auth: {
@@ -154,11 +170,9 @@ app.post('/forgot-password', async (req, res) => {
 });
 
 // GET user profile route
-app.get('/user', async (req, res) => {
+app.get('/user', verifyToken, async (req, res) => {
   try {
-    const token = req.headers.authorization.split(' ')[1];
-    const decoded = jwt.verify(token, JWT_SECRET);
-    const user = await User.findById(decoded.userId);
+    const user = await User.findById(req.userId);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     res.status(200).json(user);
@@ -169,31 +183,47 @@ app.get('/user', async (req, res) => {
 });
 
 // Profile Update Route (PUT)
-app.put('/user', upload.single('image'), async (req, res) => {
+app.put('/user', verifyToken, upload.single('image'), async (req, res) => {
   const { firstName, lastName, email, phone } = req.body;
   const image = req.file;
 
   try {
-    const token = req.headers.authorization.split(' ')[1];
-    const decoded = jwt.verify(token, JWT_SECRET);
-    const userId = decoded.userId;
-
-    const updateData = {
-      firstName,
-      lastName,
-      email,
-      phone,
-    };
-    
+    const updateData = { firstName, lastName, email, phone };
     if (image) {
       updateData.imagePath = `uploads/${image.filename}`;
     }
 
-    const updatedUser = await User.findByIdAndUpdate(userId, updateData, { new: true });
-
+    const updatedUser = await User.findByIdAndUpdate(req.userId, updateData, { new: true });
     res.status(200).json(updatedUser);
   } catch (error) {
     console.error('Error updating profile:', error.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET user theme route
+app.get('/user/theme', verifyToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    res.status(200).json({ theme: user.theme || 'light' });
+  } catch (error) {
+    console.error('Error fetching theme:', error.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// PUT user theme update route
+app.put('/user/theme', verifyToken, async (req, res) => {
+  try {
+    const { theme } = req.body;
+    if (!theme) return res.status(400).json({ error: 'Theme value is required' });
+
+    const updatedUser = await User.findByIdAndUpdate(req.userId, { theme }, { new: true });
+    res.status(200).json({ theme: updatedUser.theme });
+  } catch (error) {
+    console.error('Error updating theme:', error.message);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
