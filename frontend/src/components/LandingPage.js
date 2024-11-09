@@ -9,7 +9,8 @@ const LandingPage = () => {
 
   // Fetch the username from localStorage on component mount
   useEffect(() => {
-    const storedUsername = localStorage.getItem('username'); // Replace 'username' with the actual key name used for storing username
+    const storedUsername = localStorage.getItem('username');
+    console.log("Stored username:", storedUsername); // Debug log
     if (storedUsername) {
       setUsername(storedUsername);
     }
@@ -22,9 +23,16 @@ const LandingPage = () => {
 
   // Handle logout logic
   const handleLogout = () => {
-    localStorage.removeItem('token'); // Clear token
-    localStorage.removeItem('username'); // Clear username or any other user-related data
-    navigate('/'); // Redirect to landing page
+    console.log("Logging out..."); // Debug log
+    localStorage.removeItem('authToken'); // Ensure correct key is cleared
+    localStorage.removeItem('username');
+    navigate('/'); // Redirect to the landing page after logout
+  };
+
+  // Debugging: Ensure that "Shop Now" button links correctly
+  const handleShopNowClick = () => {
+    console.log("Navigating to /home"); // Debug log for button click
+    navigate('/home');
   };
 
   return (
@@ -44,9 +52,7 @@ const LandingPage = () => {
         </div>
 
         <div className="navbar-right">
-          <Link to="/seller-page" className="become-seller">
-            Become Seller
-          </Link>
+          <Link to="/seller-page" className="become-seller">Become Seller</Link>
           {username ? (
             <div className="dropdown">
               <button className="dropdown-toggle" onClick={toggleDropdown}>
@@ -54,16 +60,12 @@ const LandingPage = () => {
               </button>
               {isDropdownOpen && (
                 <div className="dropdown-menu">
-                  <button className="dropdown-item" onClick={handleLogout}>
-                    Logout
-                  </button>
+                  <button className="dropdown-item" onClick={handleLogout}>Logout</button>
                 </div>
               )}
             </div>
           ) : (
-            <Link to="/login" className="login-btn">
-              Login
-            </Link>
+            <Link to="/login" className="login-btn">Login</Link>
           )}
         </div>
       </nav>
@@ -74,13 +76,12 @@ const LandingPage = () => {
           <p>
             TradeZone is a secondhand goods marketplace designed to facilitate the buying, selling, and trading of pre-owned electronics. Our app also features trade-in facilities where two sellers can exchange products, and collaborates with third-party repair shops. Our platform promotes sustainability by extending the life of products and providing users with an affordable alternative to new items.
           </p>
-          <Link to="/home">
-            <button className="shop-now">Shop Now</button>
-          </Link>
+          {/* Button to navigate to /home */}
+          <button className="shop-now" onClick={handleShopNowClick}>Shop Now</button>
         </div>
       </section>
     </div>
   );
-}
+};
 
 export default LandingPage;
