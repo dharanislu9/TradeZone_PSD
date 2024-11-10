@@ -1,5 +1,3 @@
-// src/components/SettingsPage.js
-
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -25,24 +23,29 @@ const SettingsPage = () => {
   // Fetch initial settings and apply theme on load
   useEffect(() => {
     const token = localStorage.getItem('authToken');
-    if (token) {
-      axios
-        .get('http://localhost:5001/user/settings', {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-        .then(response => {
-          setSettings(response.data.settings);
-          setPaymentMethod(response.data.settings.paymentMethod || ''); 
-          applyTheme(response.data.settings.theme); // Apply theme initially
-        })
-        .catch(error => {
-          if (error.response && error.response.status === 401) {
-            navigate('/login');
-          } else {
-            console.error('Error fetching settings:', error);
-          }
-        });
+    if (!token) {
+      navigate('/login');
+      return;
     }
+
+    axios
+      .get('http://localhost:5001/user/settings', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      .then(response => {
+        setSettings(response.data.settings);
+        setPaymentMethod(response.data.settings.paymentMethod || '');
+        applyTheme(response.data.settings.theme); // Apply theme initially
+      })
+      .catch(error => {
+        if (error.response && error.response.status === 401) {
+          console.warn('Session expired or unauthorized access. Redirecting to login.');
+          localStorage.removeItem('authToken'); // Clear token if unauthorized
+          navigate('/login');
+        } else {
+          console.error('Error fetching settings:', error);
+        }
+      });
   }, [navigate]);
 
   // Update specific setting and apply theme if updated
@@ -52,18 +55,29 @@ const SettingsPage = () => {
       navigate('/login');
       return;
     }
-  
-    axios.put('http://localhost:5001/user/settings', { [settingName]: value }, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    .then(response => {
-      setSettings(response.data.settings);
-      if (settingName === 'theme') applyTheme(value); // Apply theme on change
-      if (settingName === 'paymentMethod') setPaymentMethod(value); 
-    })
-    .catch(error => {
-      console.error('Error updating setting:', error);
-    });
+
+    axios
+      .put('http://localhost:5001/user/settings', { [settingName]: value }, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      .then(response => {
+        setSettings(response.data.settings);
+        if (settingName === 'theme') applyTheme(value); // Apply theme on change
+        if (settingName === 'paymentMethod') setPaymentMethod(value);
+      })
+      .catch(error => {
+        if (error.response && error.response.status === 401) {
+          console.warn('Unauthorized access while updating settings. Redirecting to login.');
+          localStorage.removeItem('authToken'); // Clear token if unauthorized
+          navigate('/login');
+        } else {
+          console.error('Error updating setting:', error);
+        }
+      });
+  };
+
+  const handleBack = () => {
+    navigate('/'); // Redirect to the home or landing page
   };
 
   const handleLogout = () => {
@@ -81,7 +95,7 @@ const SettingsPage = () => {
       <AccountSettings updateSetting={updateSetting} />
       <PrivacySettings updateSetting={updateSetting} />
       <div className="settings-section">
-        <button className="button logout-button" onClick={handleLogout}>Back</button>
+        <button className="button logout-button" onClick={handleBack}>Back</button>
       </div>
     </div>
   );
