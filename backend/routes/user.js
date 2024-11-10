@@ -148,7 +148,7 @@ router.put('/theme', verifyToken, async (req, res) => {
     const updatedUser = await User.findByIdAndUpdate(
       req.userId,
       { theme },
-      { new: true } // Returns the updated document
+      { new: true }
     );
 
     if (!updatedUser) return res.status(404).json({ error: 'User not found' });
@@ -160,6 +160,44 @@ router.put('/theme', verifyToken, async (req, res) => {
   }
 });
 
+// Update Payment Method Route
+router.put('/payment-method', verifyToken, async (req, res) => {
+  const { cardNumber, expDate, cvv, country } = req.body;
+
+  if (!cardNumber || !expDate || !cvv || !country) {
+    return res.status(400).json({ error: 'All payment method fields are required' });
+  }
+
+  try {
+    const updatedUser = await User.findByIdAndUpdate(
+      req.userId,
+      { $push: { paymentMethods: { cardNumber, expDate, cvv, country } } },
+      { new: true }
+    );
+
+    if (!updatedUser) return res.status(404).json({ error: 'User not found' });
+
+    res.status(200).json({ message: 'Payment method added successfully', paymentMethods: updatedUser.paymentMethods });
+  } catch (error) {
+    console.error('Error updating payment method:', error.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get Payment Methods Route
+router.get('/payment-methods', verifyToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    res.status(200).json({ paymentMethods: user.paymentMethods || [] });
+  } catch (error) {
+    console.error('Error fetching payment methods:', error.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Change Password Route
 router.put('/change-password', verifyToken, async (req, res) => {
   const { oldPassword, newPassword } = req.body;
 
@@ -167,7 +205,7 @@ router.put('/change-password', verifyToken, async (req, res) => {
     const user = await User.findById(req.userId);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    const isMatch = await user.comparePassword(oldPassword);
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
     if (!isMatch) return res.status(400).json({ error: 'Old password is incorrect' });
 
     user.password = await bcrypt.hash(newPassword, 10); // Hash new password
@@ -179,8 +217,5 @@ router.put('/change-password', verifyToken, async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-
-
-
 
 module.exports = router;

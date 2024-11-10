@@ -33,8 +33,16 @@ const userSchema = new mongoose.Schema({
   address: String,
   imagePath: String,
   theme: { type: String, default: 'light' },
-  paymentMethod: String, // Added paymentMethod field
+  paymentMethods: [
+    {
+      cardNumber: String,
+      expDate: String,
+      cvv: String,
+      country: String
+    }
+  ],
 });
+
 
 const User = mongoose.model('User', userSchema);
 
@@ -48,7 +56,7 @@ const verifyToken = (req, res, next) => {
   const token = authHeader.split(' ')[1];
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    req.userId = decoded.userId; // Attach user ID to request object
+    req.userId = decoded.userId;
     next();
   } catch (error) {
     console.error('JWT verification error:', error.message);
@@ -256,6 +264,44 @@ app.put('/user/theme', verifyToken, async (req, res) => {
     res.status(200).json({ theme: updatedUser.theme });
   } catch (error) {
     console.error('Error updating theme:', error.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET Payment Methods Route
+app.get('/user/payment-methods', verifyToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    res.status(200).json({ paymentMethods: user.paymentMethods });
+  } catch (error) {
+    console.error('Error fetching payment methods:', error.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// PUT Payment Method Route
+app.put('/user/payment-method', verifyToken, async (req, res) => {
+  console.log('Request Body:', req.body); // Log the request body for debugging
+  const { cardNumber, expDate, cvv, country } = req.body;
+
+  if (!cardNumber || !expDate || !cvv || !country) {
+    return res.status(400).json({ error: 'All payment method fields are required' });
+  }
+
+  try {
+    const updatedUser = await User.findByIdAndUpdate(
+      req.userId,
+      { $push: { paymentMethods: { cardNumber, expDate, cvv, country } } },
+      { new: true }
+    );
+
+    if (!updatedUser) return res.status(404).json({ error: 'User not found' });
+
+    res.status(200).json({ message: 'Payment method added successfully', paymentMethods: updatedUser.paymentMethods });
+  } catch (error) {
+    console.error('Error updating payment method:', error.message);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
