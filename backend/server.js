@@ -1,3 +1,5 @@
+// server.js
+
 const express = require('express');
 const mongoose = require('mongoose');
 const multer = require('multer');
@@ -30,7 +32,8 @@ const userSchema = new mongoose.Schema({
   phone: String,
   address: String,
   imagePath: String,
-  theme: { type: String, default: 'light' }, // Default theme set to 'light'
+  theme: { type: String, default: 'light' },
+  paymentMethod: String, // Added paymentMethod field
 });
 
 const User = mongoose.model('User', userSchema);
@@ -135,6 +138,35 @@ app.post('/login', async (req, res) => {
   }
 });
 
+// Change Password Route
+app.put('/user/change-password', verifyToken, async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+
+  if (!oldPassword || !newPassword) {
+    return res.status(400).json({ error: 'Both old and new passwords are required' });
+  }
+
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    // Verify the old password
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ error: 'Incorrect old password' });
+    }
+
+    // Hash the new password and update it
+    user.password = await bcrypt.hash(newPassword, 10);
+    await user.save();
+
+    res.status(200).json({ message: 'Password changed successfully' });
+  } catch (error) {
+    console.error('Error changing password:', error.message);
+    res.status(500).json({ error: 'Internal server error while changing password' });
+  }
+});
+
 // Forgot Password Route
 app.post('/forgot-password', async (req, res) => {
   const { email } = req.body;
@@ -227,6 +259,7 @@ app.put('/user/theme', verifyToken, async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
 
 // Start Server
 app.listen(PORT, () => {

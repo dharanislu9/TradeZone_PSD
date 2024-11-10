@@ -12,8 +12,10 @@ const userSchema = new mongoose.Schema({
   phone: String,
   address: String,
   imagePath: String,
-  theme: { type: String, default: 'light' }, // Default theme to 'light'
+  theme: { type: String, default: 'light' },
+ 
 });
+
 
 // Hash password before saving the user document
 userSchema.pre('save', async function(next) {
