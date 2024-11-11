@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './HomePage.css';
 
-
 const HomePage = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState(""); // State to hold the search query
+  const [products, setProducts] = useState([]); // State to hold fetched products
   const navigate = useNavigate();
-
 
   // Handle logout logic
   const handleLogout = () => {
@@ -14,26 +14,36 @@ const HomePage = () => {
     navigate('/login'); // Redirect to login page
   };
 
-
   // Toggle dropdown visibility
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
 
+  // Fetch products from backend on component mount
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch("http://localhost:5001/api/products"); // Adjust URL if needed
+        if (response.ok) {
+          const data = await response.json();
+          setProducts(data);
+        } else {
+          console.error("Failed to fetch products");
+        }
+      } catch (error) {
+        console.error("Error:", error);
+      }
+    };
 
-  // Sample images for scrolling section
-  const images = [
-    { src: "https://th.bing.com/th/id/OIP.qwy2jAdkv5p4kmRI5b02fwHaHa?w=179&h=180&c=7&r=0&o=5&dpr=1.3&pid=1.7", id: 1 },
-    { src: "https://www.lowergear.com/img/cms/resizedIMG_20221211_132326907.jpg", id: 2 },
-    { src: "https://i.ebayimg.com/00/s/NzY4WDEwMjQ=/z/eeIAAOSwjatbugiE/$_86.JPG", id: 3 },
-    { src: "https://th.bing.com/th/id/OIP.mDbfiLwyexcVa2e0iXz8RgHaFj?rs=1&pid=ImgDetMain", id: 4 },
-    { src: "https://i.etsystatic.com/13148713/r/il/9af7aa/2956782678/il_1588xN.2956782678_850g.jpg", id: 5 },
-    { src: "https://th.bing.com/th/id/OIP.tf5bCQXp_CGT2RhSJcyUOQAAAA?w=241&h=181&c=7&r=0&o=5&dpr=1.3&pid=1.7", id: 6 },
-    { src: "https://th.bing.com/th/id/OIP.bvGI1USB9ckFU74p5UUWawHaE7?rs=1&pid=ImgDetMain", id: 7 },
-    { src: "https://www.new2you-furniture.com/images/listing_photos/medium_3436_rocking_chair_tn_2021-01-19_14.35.46.jpg", id: 8 },
-    { src: "https://th.bing.com/th/id/OIP.rpTu4bid4-txJrZStWLbZAHaHa?w=187&h=187&c=7&r=0&o=5&dpr=1.3&pid=1.7", id: 9 },
-  ];
+    fetchProducts();
+  }, []);
 
+  console.log(products)
+
+  // Filter products based on search query
+  const filteredProducts = products.filter(product => 
+    product.title && product.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="home-wrapper">
@@ -44,25 +54,20 @@ const HomePage = () => {
             <h1 className="logo-text">TradeZone</h1>
           </div>
 
-
           {/* Right-side Buttons Container */}
           <div className="nav-buttons">
             <Link to="/login" className="button login-btn">Login</Link>
-            <button className="button" onClick={toggleDropdown}>
-                Profile
-              </button>
+            <button className="button" onClick={toggleDropdown}>Profile</button>
 
-
-              {isDropdownOpen && (
-                <div className="dropdown-menu">
-                  <Link to="/profile" className="dropdown-item">My Details</Link>
-                  <button className="dropdown-item" onClick={handleLogout}>Logout</button>
-                </div>
-              )}
+            {isDropdownOpen && (
+              <div className="dropdown-menu">
+                <Link to="/profile" className="dropdown-item">My Details</Link>
+                <button className="dropdown-item" onClick={handleLogout}>Logout</button>
+              </div>
+            )}
           </div>
         </div>
       </header>
-
 
       <div className="main-container">
         {/* Left block for navigation links */}
@@ -74,21 +79,32 @@ const HomePage = () => {
           </div>
         </div>
 
-
-        {/* Right block for image scrolling */}
+        {/* Right block for search and product scrolling */}
         <div className="right-block">
+          {/* Search Bar */}
+          <div className="search-bar-container">
+            <input
+              type="text"
+              placeholder="Search for a product..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="search-bar"
+            />
+          </div>
+
+          {/* Product Scrolling Section */}
           <div className="image-scroll">
-            {images.map((image) => (
-              <Link key={image.id} to={`/product/${image.id}`}>
-                <img src={image.src} alt={`Sample Image ${image.id}`} />
+            {products.length?products.map((product) => (
+              <Link key={product._id} to={`/product/${product._id}`}>
+                <img src={`http://localhost:5001${product.image_url}`??`http://localhost:5001/${product.imagePath}`} alt={product.title || "Product Image"} />
+                <p>{product.title}</p>
               </Link>
-            ))}
+            )):"No products Available"}
           </div>
         </div>
       </div>
     </div>
   );
 };
-
 
 export default HomePage;

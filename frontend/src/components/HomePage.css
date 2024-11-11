@@ -9,7 +9,7 @@
 body {
   font-family: Arial, sans-serif;
   height: 100%;
-  overflow: hidden; /* Prevents scrolling caused by overflow */
+  /* overflow: hidden; Prevents scrolling caused by overflow */
 }
 
 .home-wrapper {
@@ -164,8 +164,3 @@ body {
   transform: scale(1.05);
 }
 
-/* Remove extra bottom space */
-html, body {
-  height: 100%;
-  overflow: hidden;
-}

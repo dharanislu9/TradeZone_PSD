@@ -76,7 +76,7 @@ const response = await fetch('http://localhost:5001/user', {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5500/user', {
+      const response = await fetch('http://localhost:5001/user', {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
