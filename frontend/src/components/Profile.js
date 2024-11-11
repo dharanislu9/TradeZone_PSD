@@ -35,7 +35,7 @@ const response = await fetch('http://localhost:5001/user', {
         if (!response.ok) throw new Error('Failed to fetch user data');
         const data = await response.json();
         setUser(data);
-        setImagePreview(`http://localhost:5500/${data.imagePath}`);
+        setImagePreview(`http://localhost:5001/${data.imagePath}`);
       } catch (err) {
         console.error('Error fetching user data:', err);
         setError('Could not load user data.');

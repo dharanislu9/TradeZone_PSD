@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import './SellerPage.css'; // Import your CSS file
-
+import './SellerPage.css';
 
 const SellerPage = () => {
   // State to hold the form data
@@ -9,7 +8,6 @@ const SellerPage = () => {
     description: '',
     price: '',
   });
-
 
   // Handle input changes
   const handleInputChange = (e) => {
@@ -20,7 +18,6 @@ const SellerPage = () => {
     });
   };
 
-
   // Handle image upload
   const handleImageUpload = (e) => {
     setFormData({
@@ -29,14 +26,38 @@ const SellerPage = () => {
     });
   };
 
-
   // Handle form submission
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Form submit logic here
-    console.log('Form Data:', formData);
-  };
 
+    // Create FormData object to send as multipart/form-data
+    const form = new FormData();
+    form.append('image', formData.image); // Add image file to FormData
+    form.append('description', formData.description);
+    form.append('price', formData.price);
+
+    try {
+      const response = await fetch("http://localhost:5001/api/products", {
+        method: "POST",
+        body: form,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Product created successfully:', data);
+        // Optionally reset the form
+        setFormData({
+          image: null,
+          description: '',
+          price: '',
+        });
+      } else {
+        console.error('Failed to create product');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
 
   return (
     <div className="seller-page">
@@ -55,7 +76,6 @@ const SellerPage = () => {
           />
         </div>
 
-
         {/* Description Field */}
         <div className="form-group">
           <label htmlFor="description">Product Description:</label>
@@ -68,7 +88,6 @@ const SellerPage = () => {
             required
           />
         </div>
-
 
         {/* Price Field */}
         <div className="form-group">
@@ -85,13 +104,11 @@ const SellerPage = () => {
           />
         </div>
 
-
         {/* Submit Button */}
         <button type="submit" className="submit-button">Submit Product</button>
       </form>
     </div>
   );
 };
-
 
 export default SellerPage;

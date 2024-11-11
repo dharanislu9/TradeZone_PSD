@@ -8,6 +8,8 @@ const dotenv = require('dotenv');
 const path = require('path');
 const nodemailer = require('nodemailer');
 
+const productRoutes = require("./routes/product.js")
+
 
 // Load environment variables
 dotenv.config();
@@ -237,6 +239,9 @@ router.get("/", (req, res) => {
 
 
 app.use("/", router);
+app.use("/api", productRoutes)
+app.use("/uploads", express.static("uploads"));
+
 
 
 // Start Server
