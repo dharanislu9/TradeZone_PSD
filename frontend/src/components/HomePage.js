@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './HomePage.css';
 
@@ -10,11 +10,42 @@ const HomePage = () => {
   const [radius, setRadius] = useState("1 mile");
   const navigate = useNavigate();
 
-  // Handle logout logic
+  useEffect(() => {
+    const fetchLocation = async () => {
+      try {
+        const response = await fetch('http://localhost:5001/user/location', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+          },
+        });
+        console.log("Response status:", response.status); // Check if the response status is 200
+  
+        if (response.ok) {
+          const data = await response.json();
+          console.log("Fetched location data:", data); // Log the fetched data
+          if (data.location) {
+            setLocation(data.location.city || "Default City");
+            setRadius(data.location.radius || "1 mile");
+          }
+        } else {
+          console.error("Failed to fetch location");
+        }
+      } catch (error) {
+        console.error("Error fetching location:", error.message);
+      }
+    };
+  
+    fetchLocation();
+  }, []); // Empty dependency array ensures this runs only once when the component mounts
+  
+  
+
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('locationData'); // Clear cached location data
     navigate('/login');
   };
+  
 
   // Toggle dropdown visibility
   const toggleDropdown = () => {
@@ -26,21 +57,25 @@ const HomePage = () => {
     setIsLocationModalOpen((prevState) => !prevState);
   };
 
-  // Handle updating location with backend API call
   const handleLocationChange = async () => {
     try {
+      const token = localStorage.getItem("authToken");
       const response = await fetch('http://localhost:5001/user/location', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ location, radius })
+        body: JSON.stringify({ city: location, radius }),
       });
-
+  
       if (response.ok) {
         const data = await response.json();
         console.log('Location updated:', data);
+  
+        // Update localStorage with the new location
+        localStorage.setItem('locationData', JSON.stringify(data.location));
+  
         toggleLocationModal();
       } else {
         console.error('Failed to update location');
@@ -49,7 +84,8 @@ const HomePage = () => {
       console.error('Error updating location:', error.message);
     }
   };
-
+  
+  
   // Images with descriptions and prices
   const images = [
     { src: "https://th.bing.com/th/id/OIP.qwy2jAdkv5p4kmRI5b02fwHaHa?w=179&h=180&c=7&r=0&o=5&dpr=1.3&pid=1.7", id: 1, description: "Kitchen Cabinets", price: 50 },

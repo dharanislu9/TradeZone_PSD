@@ -18,22 +18,34 @@ const cartItemSchema = new mongoose.Schema({
 
 // Define the User Schema
 const userSchema = new mongoose.Schema({
-  firstName: { type: String, required: true },
-  lastName: { type: String, required: true },
-  email: { type: String, unique: true, required: true },
-  password: { type: String, required: true },
+  firstName: String,
+  lastName: String,
+  email: { type: String, unique: true },
+  password: String,
   phone: String,
   address: String,
-  location: {
-    city: String,
-    radius: String,
-  },
   imagePath: String,
   theme: { type: String, default: 'light' },
-  paymentMethods: [paymentMethodSchema], // Array of embedded payment method documents
-  cart: [cartItemSchema], // Array of embedded cart item documents
-}, {
-  timestamps: true, // Automatically create createdAt and updatedAt fields
+  locations: [
+    {
+      city: {type: String, required: true},
+      radius:{type: String, required: true},
+    }
+  ],
+  paymentMethods: [
+    {
+      cardNumber: String,
+      expDate: String,
+      cvv: String,
+      country: String
+    }
+  ],
+  cart: [
+    {
+      productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
+      quantity: { type: Number, default: 1 }
+    }
+  ]
 });
 
 // Hash password before saving the user document

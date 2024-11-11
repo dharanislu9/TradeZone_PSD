@@ -21,12 +21,10 @@ const Login = () => {
         body: JSON.stringify({ email, password }),
       });
 
-      // Log raw response to inspect format
-      console.log('Raw response:', response);
-
+      // Parse the response to JSON
       const data = await response.json();
-      
-      // Log parsed response data
+
+      // Log the parsed response data for debugging
       console.log('Parsed response data:', data);
 
       if (!response.ok) {
@@ -35,14 +33,23 @@ const Login = () => {
         return;
       }
 
+      // Check if the response contains the token and username
       if (data.token && data.username) {
+        // Store the token and username in localStorage
         localStorage.setItem('authToken', data.token);
         localStorage.setItem('username', data.username);
-        navigate('/'); // Redirect to the homepage or dashboard after login
+
+        // Log the stored token for confirmation
+        console.log('Token stored in localStorage:', localStorage.getItem('authToken'));
+
+        // Redirect to the homepage or dashboard after login
+        navigate('/');
       } else {
+        // Handle unexpected response format
         setError('Unexpected response from server.');
       }
     } catch (err) {
+      // Handle network or other unexpected errors
       console.error('Network error:', err);
       setError('Network error. Please try again later.');
     }

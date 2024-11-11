@@ -1,5 +1,3 @@
-// server.js
-
 const express = require('express');
 const mongoose = require('mongoose');
 const multer = require('multer');
@@ -10,7 +8,6 @@ const dotenv = require('dotenv');
 const path = require('path');
 const nodemailer = require('nodemailer');
 
-// Load environment variables
 dotenv.config();
 
 const app = express();
@@ -23,7 +20,7 @@ mongoose.connect(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true 
   .then(() => console.log('MongoDB connected successfully'))
   .catch(error => console.error('MongoDB connection error:', error));
 
-// User Schema
+// User Schema with location
 const userSchema = new mongoose.Schema({
   firstName: String,
   lastName: String,
@@ -33,10 +30,12 @@ const userSchema = new mongoose.Schema({
   address: String,
   imagePath: String,
   theme: { type: String, default: 'light' },
-  location: {
-    city: String,
-    radius: String
-  },
+  locations: [
+    {
+      city: {type: String, required: true},
+      radius:{type: String, required: true},
+    }
+  ],
   paymentMethods: [
     {
       cardNumber: String,
@@ -45,8 +44,13 @@ const userSchema = new mongoose.Schema({
       country: String
     }
   ],
+  cart: [
+    {
+      productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
+      quantity: { type: Number, default: 1 }
+    }
+  ]
 });
-
 
 const User = mongoose.model('User', userSchema);
 
@@ -60,21 +64,25 @@ const productSchema = new mongoose.Schema({
 
 const Product = mongoose.model('Product', productSchema);
 
-// Middleware for verifying JWT tokens
+// Middleware for verifying JWT tokens with enhanced error handling
 const verifyToken = (req, res, next) => {
   const authHeader = req.headers.authorization;
-  if (!authHeader) {
-    return res.status(403).json({ error: 'Authorization header missing' });
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(403).json({ error: 'Authorization header missing or malformed' });
   }
 
   const token = authHeader.split(' ')[1];
+  if (!token) {
+    return res.status(403).json({ error: 'Token missing' });
+  }
+
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
     req.userId = decoded.userId;
     next();
   } catch (error) {
     console.error('JWT verification error:', error.message);
-    res.status(401).json({ error: 'Invalid token' });
+    return res.status(401).json({ error: 'Invalid or malformed token' });
   }
 };
 
@@ -98,14 +106,12 @@ const imageFilter = (req, file, cb) => {
 
 const upload = multer({ storage: storage, fileFilter: imageFilter });
 
-// Middleware
 app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
 app.use(express.json());
 app.use('/uploads', express.static('uploads'));
 
-// Register Route
 app.post('/register', upload.single('image'), async (req, res) => {
-  const { firstName, lastName, email, password, phone, address } = req.body;
+  const { firstName, lastName, email, password, phone, address, location, radius } = req.body;
   const image = req.file;
 
   if (!firstName || !lastName || !email || !password || !phone || !address) {
@@ -126,16 +132,18 @@ app.post('/register', upload.single('image'), async (req, res) => {
       password: hashedPassword,
       phone,
       address,
+      locations: location && radius ? [{ city: location, radius }] : [], // Add location if provided
       imagePath: image ? `uploads/${image.filename}` : undefined,
     });
 
     await newUser.save();
-    res.status(201).json({ message: 'User registered successfully' });
+    res.status(201).json({ message: 'User registered successfully', locations: newUser.locations });
   } catch (error) {
     console.error('Error during registration:', error.message);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
 
 // Login Route
 app.post('/login', async (req, res) => {
@@ -153,7 +161,12 @@ app.post('/login', async (req, res) => {
     if (!isMatch) return res.status(400).json({ error: 'Invalid credentials' });
 
     const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '1h' });
-    res.status(200).json({ token, username: user.firstName, message: 'Login successful' });
+    res.status(200).json({ 
+      token, 
+      username: user.firstName, 
+      location: user.location,
+      message: 'Login successful' 
+    });
   } catch (error) {
     console.error('Error during login:', error.message);
     res.status(500).json({ error: 'Internal server error' });
@@ -172,13 +185,11 @@ app.put('/user/change-password', verifyToken, async (req, res) => {
     const user = await User.findById(req.userId);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    // Verify the old password
     const isMatch = await bcrypt.compare(oldPassword, user.password);
     if (!isMatch) {
       return res.status(400).json({ error: 'Incorrect old password' });
     }
 
-    // Hash the new password and update it
     user.password = await bcrypt.hash(newPassword, 10);
     await user.save();
 
@@ -282,62 +293,40 @@ app.put('/user/theme', verifyToken, async (req, res) => {
   }
 });
 
-// GET Payment Methods Route
-app.get('/user/payment-methods', verifyToken, async (req, res) => {
+
+
+app.put('/user/location', verifyToken, async (req, res) => {
+  const { city, radius } = req.body;
+
+  try {
+    const updatedUser = await User.findByIdAndUpdate(
+      req.userId,
+      { $set: { "locations.0": { city, radius } } }, // Upserts the location as the first item in the array
+      { new: true, upsert: true }
+    );
+
+    if (!updatedUser) return res.status(404).json({ error: 'User not found' });
+    res.status(200).json({ message: 'Location added successfully', location: updatedUser.locations[0] });
+  } catch (error) {
+    console.error('Error adding location:', error.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get('/user/location', verifyToken, async (req, res) => {
   try {
     const user = await User.findById(req.userId);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    res.status(200).json({ paymentMethods: user.paymentMethods });
+    // Send the first location in the array or a default location if the array is empty
+    const location = user.locations.length > 0 ? user.locations[0] : { city: "Default City", radius: "1 mile" };
+    res.status(200).json({ location });
   } catch (error) {
-    console.error('Error fetching payment methods:', error.message);
+    console.error('Error fetching location:', error.message);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// PUT Payment Method Route
-app.put('/user/payment-method', verifyToken, async (req, res) => {
-  console.log('Request Body:', req.body); // Log the request body for debugging
-  const { cardNumber, expDate, cvv, country } = req.body;
-
-  if (!cardNumber || !expDate || !cvv || !country) {
-    return res.status(400).json({ error: 'All payment method fields are required' });
-  }
-
-  try {
-    const updatedUser = await User.findByIdAndUpdate(
-      req.userId,
-      { $push: { paymentMethods: { cardNumber, expDate, cvv, country } } },
-      { new: true }
-    );
-
-    if (!updatedUser) return res.status(404).json({ error: 'User not found' });
-
-    res.status(200).json({ message: 'Payment method added successfully', paymentMethods: updatedUser.paymentMethods });
-  } catch (error) {
-    console.error('Error updating payment method:', error.message);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// Update Location Route
-app.put('/user/location', verifyToken, async (req, res) => {
-  const { location, radius } = req.body;
-
-  try {
-    const updatedUser = await User.findByIdAndUpdate(
-      req.userId,
-      { location: { city: location, radius } },
-      { new: true }
-    );
-
-    if (!updatedUser) return res.status(404).json({ error: 'User not found' });
-    res.status(200).json({ message: 'Location updated successfully', location: updatedUser.location });
-  } catch (error) {
-    console.error('Error updating location:', error.message);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
 
 // Add to Cart
 app.post('/user/cart', verifyToken, async (req, res) => {
@@ -392,13 +381,39 @@ app.delete('/user/cart/:productId', verifyToken, async (req, res) => {
   }
 });
 
+// Product Submission Route
+app.post('/products', verifyToken, upload.single('image'), async (req, res) => {
+  const { description, price } = req.body;
+  const image = req.file;
+
+  if (!description || !price || !image) {
+    return res.status(400).json({ error: 'All fields including image are required' });
+  }
+
+  try {
+    const newProduct = new Product({
+      description,
+      price,
+      imagePath: `uploads/${image.filename}`,
+      sellerId: req.userId,
+    });
+
+    await newProduct.save();
+    res.status(201).json({ message: 'Product added successfully' });
+  } catch (error) {
+    console.error('Error adding product:', error.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Update entire locations array
 app.put('/user/locations', verifyToken, async (req, res) => {
   const { locations } = req.body;
 
   try {
     const updatedUser = await User.findByIdAndUpdate(
       req.userId,
-      { locations }, // assuming "locations" is an array in your User schema
+      { locations },
       { new: true }
     );
 
@@ -409,6 +424,59 @@ app.put('/user/locations', verifyToken, async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+// Fetch all user locations
+app.get('/user/locations', verifyToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    res.status(200).json({ locations: user.locations || [] });
+  } catch (error) {
+    console.error('Error fetching locations:', error.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+
+// GET Payment Methods Route
+app.get('/user/payment-methods', verifyToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    res.status(200).json({ paymentMethods: user.paymentMethods });
+  } catch (error) {
+    console.error('Error fetching payment methods:', error.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// PUT Payment Method Route
+app.put('/user/payment-method', verifyToken, async (req, res) => {
+  console.log('Request Body:', req.body); // Log the request body for debugging
+  const { cardNumber, expDate, cvv, country } = req.body;
+
+  if (!cardNumber || !expDate || !cvv || !country) {
+    return res.status(400).json({ error: 'All payment method fields are required' });
+  }
+
+  try {
+    const updatedUser = await User.findByIdAndUpdate(
+      req.userId,
+      { $push: { paymentMethods: { cardNumber, expDate, cvv, country } } },
+      { new: true }
+    );
+
+    if (!updatedUser) return res.status(404).json({ error: 'User not found' });
+
+    res.status(200).json({ message: 'Payment method added successfully', paymentMethods: updatedUser.paymentMethods });
+  } catch (error) {
+    console.error('Error updating payment method:', error.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 
 // Start Server
 app.listen(PORT, () => {
