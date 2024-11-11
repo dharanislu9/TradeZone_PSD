@@ -33,6 +33,10 @@ const userSchema = new mongoose.Schema({
   address: String,
   imagePath: String,
   theme: { type: String, default: 'light' },
+  location: {
+    city: String,
+    radius: String
+  },
   paymentMethods: [
     {
       cardNumber: String,
@@ -45,6 +49,16 @@ const userSchema = new mongoose.Schema({
 
 
 const User = mongoose.model('User', userSchema);
+
+// Product Schema
+const productSchema = new mongoose.Schema({
+  description: String,
+  price: Number,
+  imagePath: String,
+  sellerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+});
+
+const Product = mongoose.model('Product', productSchema);
 
 // Middleware for verifying JWT tokens
 const verifyToken = (req, res, next) => {
@@ -306,6 +320,95 @@ app.put('/user/payment-method', verifyToken, async (req, res) => {
   }
 });
 
+// Update Location Route
+app.put('/user/location', verifyToken, async (req, res) => {
+  const { location, radius } = req.body;
+
+  try {
+    const updatedUser = await User.findByIdAndUpdate(
+      req.userId,
+      { location: { city: location, radius } },
+      { new: true }
+    );
+
+    if (!updatedUser) return res.status(404).json({ error: 'User not found' });
+    res.status(200).json({ message: 'Location updated successfully', location: updatedUser.location });
+  } catch (error) {
+    console.error('Error updating location:', error.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Add to Cart
+app.post('/user/cart', verifyToken, async (req, res) => {
+  const { productId } = req.body;
+
+  try {
+    const product = await Product.findById(productId);
+    if (!product) return res.status(404).json({ error: 'Product not found' });
+
+    const user = await User.findByIdAndUpdate(
+      req.userId,
+      { $push: { cart: { productId } } },
+      { new: true }
+    );
+
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.status(200).json({ message: 'Product added to cart', cart: user.cart });
+  } catch (error) {
+    console.error('Error adding to cart:', error.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get Cart
+app.get('/user/cart', verifyToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId).populate('cart.productId');
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.status(200).json({ cart: user.cart });
+  } catch (error) {
+    console.error('Error fetching cart:', error.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Remove from Cart
+app.delete('/user/cart/:productId', verifyToken, async (req, res) => {
+  const { productId } = req.params;
+
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.userId,
+      { $pull: { cart: { productId } } },
+      { new: true }
+    );
+
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.status(200).json({ message: 'Product removed from cart', cart: user.cart });
+  } catch (error) {
+    console.error('Error removing from cart:', error.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.put('/user/locations', verifyToken, async (req, res) => {
+  const { locations } = req.body;
+
+  try {
+    const updatedUser = await User.findByIdAndUpdate(
+      req.userId,
+      { locations }, // assuming "locations" is an array in your User schema
+      { new: true }
+    );
+
+    if (!updatedUser) return res.status(404).json({ error: 'User not found' });
+    res.status(200).json({ message: 'Locations updated successfully', locations: updatedUser.locations });
+  } catch (error) {
+    console.error('Error updating locations:', error.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 // Start Server
 app.listen(PORT, () => {

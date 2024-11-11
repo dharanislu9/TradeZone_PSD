@@ -218,4 +218,29 @@ router.put('/change-password', verifyToken, async (req, res) => {
   }
 });
 
+// Update User Location Route
+app.put('/user/location', verifyToken, async (req, res) => {
+  const { location, radius } = req.body;
+
+  if (!location || !radius) {
+    return res.status(400).json({ error: 'Location and radius are required' });
+  }
+
+  try {
+    const updatedUser = await User.findByIdAndUpdate(
+      req.userId,
+      { location, radius },
+      { new: true }
+    );
+
+    if (!updatedUser) return res.status(404).json({ error: 'User not found' });
+
+    res.status(200).json({ message: 'Location updated successfully', location: updatedUser.location });
+  } catch (error) {
+    console.error('Error updating location:', error.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
 module.exports = router;

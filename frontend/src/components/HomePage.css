@@ -6,18 +6,20 @@
 }
 
 /* General body styling */
-body {
+body, html {
   font-family: Arial, sans-serif;
   height: 100%;
   overflow: hidden; /* Prevents scrolling caused by overflow */
 }
 
+/* Home wrapper styling */
 .home-wrapper {
   background: linear-gradient(to bottom, #1a1a1a, #0f0f0f);
   color: rgb(255, 196, 0);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  text-align: center;
 }
 
 /* Header styling */
@@ -25,37 +27,64 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: white;
   padding: 20px;
   width: 100%;
+  background-color: white;
+  color: black;
   position: relative;
 }
 
-/* Logo container */
 .logo-container {
   display: flex;
   align-items: center;
 }
 
 .logo-text {
-  font-size: 24px;
+  font-size: 1.5em;
   color: #00E676;
   font-weight: bold;
 }
 
-/* Navigation buttons container */
-.nav-buttons {
+/* Cart and Profile Button Styling */
+.header-container-right {
   display: flex;
-  gap: 10px;
+  align-items: center;
+  gap: 20px;
 }
 
-/* Button styling */
-.button {
+.cart-container {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.cart-button {
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: black;
+  cursor: pointer;
+  position: relative;
+}
+
+.cart-count {
+  background-color: red;
+  color: white;
+  border-radius: 50%;
+  padding: 2px 6px;
+  font-size: 12px;
+  position: absolute;
+  top: -5px;
+  right: -10px;
+}
+
+/* Consistent Button Styling */
+.button, .add-to-cart-button {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 120px;
-  height: 45px; /* Consistent height */
+  height: 45px;
   background-color: #000;
   color: white;
   border: none;
@@ -64,18 +93,29 @@ body {
   font-size: 16px;
   font-weight: bold;
   transition: background 0.3s, box-shadow 0.3s;
-  padding: 0;
-  margin: 0;
 }
 
-.button:hover {
+.button:hover, .add-to-cart-button:hover {
   background-color: #333;
 }
 
+.add-to-cart-button {
+  background-color: #007bff;
+}
+
+.add-to-cart-button:hover {
+  background-color: #0056b3;
+}
+
 /* Dropdown Menu Styling */
+.nav-buttons {
+  display: flex;
+  gap: 10px;
+}
+
 .dropdown-menu {
   position: absolute;
-  top: 60px; /* Adjust to align correctly below the profile button */
+  top: 60px;
   right: 0;
   background-color: #fff;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
@@ -102,12 +142,12 @@ body {
 /* Main content styling */
 .main-container {
   display: flex;
+  flex-grow: 1;
   width: 100%;
-  height: 100%; /* Ensures the content fills the height */
-  flex-grow: 1; /* Allows main container to take up the remaining space */
+  margin-top: 20px;
 }
 
-/* Left Block */
+/* Left Block Styling */
 .left-block {
   width: 20%;
   padding: 20px;
@@ -135,7 +175,7 @@ body {
   background-color: rgba(255, 255, 255, 0.4);
 }
 
-/* Right Block for image scrolling */
+/* Right Block for image grid */
 .right-block {
   flex-grow: 1;
   padding: 20px;
@@ -144,12 +184,14 @@ body {
   overflow-y: auto;
 }
 
-/* Image grid layout */
 .image-scroll {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 20px;
-  max-height: 500px;
+}
+
+.image-container {
+  text-align: center;
 }
 
 .image-scroll img {
@@ -164,178 +206,56 @@ body {
   transform: scale(1.05);
 }
 
-/* Remove extra bottom space */
-html, body {
+/* Modal overlay styling */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
   height: 100%;
-  overflow: hidden;
-}
-=======
-/* Reset */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
 }
 
-/* General body styling */
-body {
-  font-family: Arial, sans-serif;
+.location-modal {
+  background-color: white;
+  width: 80%;
+  max-width: 400px;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  text-align: center;
 }
 
-.home-wrapper {
-  background: red;
-  color: rgb(255, 196, 0);
-  min-height: 100vh;
-}
-
-/* Header styling */
-.header-container {
+.modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: white;
-  padding: 20px;
 }
 
-/* Logo container */
-.logo-container {
+.close-button {
+  background: none;
+  border: none;
+  font-size: 1.5em;
+  cursor: pointer;
+}
+
+.modal-content {
   display: flex;
-  align-items: center;
-}
-
-/* SVG logo styling */
-.logo-icon {
-  fill: #00E676; /* Green color */
-  margin-right: 10px;
-}
-
-.logo-text {
-  font-family: Arial, sans-serif;
-  font-size: 24px;
-  color: #00E676; /* Green color */
-}
-
-/* Navigation buttons */
-.nav-buttons {
-  display: flex;
+  flex-direction: column;
   gap: 10px;
 }
 
-.button {
-  position: relative;
-  width: 120px;
-  height: 40px;
-  background-color: #000;
-  display: flex;
-  align-items: center;
+.apply-button {
+  background-color: #007bff;
   color: white;
-  flex-direction: column;
-  justify-content: center;
+  padding: 10px;
   border: none;
-  padding: 12px;
-  gap: 12px;
-  border-radius: 8px;
+  border-radius: 4px;
   cursor: pointer;
-}
-
-.button::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  left: -4px;
-  top: -1px;
-  margin: auto;
-  width: 128px;
-  height: 48px;
-  border-radius: 10px;
-  background: linear-gradient(-45deg, #e81cff 0%, #40c9ff 100%);
-  z-index: -10;
-  pointer-events: none;
-  transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.button::after {
-  content: "";
-  z-index: -1;
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(-45deg, #fc00ff 0%, #00dbde 100%);
-  transform: translate3d(0, 0, 0) scale(0.95);
-  filter: blur(20px);
-}
-
-.button:hover::after {
-  filter: blur(30px);
-}
-
-.button:hover::before {
-  transform: rotate(-180deg);
-}
-
-.button:active::before {
-  scale: 0.7;
-}
-
-/* Main content styling */
-.main-container {
-  display: flex;
-  flex-grow: 1;
-  margin-top: 0px;
-  width: 100%;  /* Ensure it uses full width */
-  padding: 0px;   /* Remove any padding if necessary */
-  box-sizing: border-box;
-}
-
-.left-block {
-  width: 20%;
-  padding: 20px;
-  background: linear-gradient(rgba(0, 30, 255, 0.84),rgba(0, 123, 255, 0.642),rgb(0, 106, 255));
-  color: white;
-}
-
-.right-block {
-  width: 100%;
-  height: 100vh;
-  padding: 100px;
-  background: linear-gradient(rgba(0, 30, 255, 0.84),rgba(0, 123, 255, 0.642),rgb(0, 106, 255));
-  color: white;
-}
-
-
-/* Profile button and dropdown */
-.profile-btn {
-  padding: 10px 15px;
-  background-color: rgba(0, 255, 60, 0.571);
-  color: white;
-  border: none;
-  cursor: pointer;
-}
-
-.dropdown {
+  font-size: 1em;
   margin-top: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
 }
-
-.dropdown a {
-  text-decoration: none;
-  color: white;
-  padding: 5px 0;
-  border-bottom: 1px solid #ddd;
-}
-
-.image-scroll {
-  display: grid; /* Use grid layout */
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Adjusts to fit as many columns as possible */
-  gap: 60px; /*image Spacing */
-  overflow-y: auto; /* Enable vertical scrolling */
-  max-height: 500px; /* Set a max height for the scrolling area */
-}
-
-.image-scroll img {
-  width: 100%; /* Make images responsive within their grid cell */
-  height: auto; /* Maintain aspect ratio */
-  object-fit: cover; /* Cover the area */
-}
-

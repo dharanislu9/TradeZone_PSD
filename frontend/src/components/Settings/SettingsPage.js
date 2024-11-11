@@ -4,10 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import './SettingsPage.css';
 import ThemeSettings from './ThemeSettings';
 import PaymentMethodSettings from './PaymentMethodSettings';
-import NotificationsSettings from './NotificationsSettings';
-import MessagesSettings from './MessagesSettings';
 import AccountSettings from './AccountSettings';
-import PrivacySettings from './PrivacySettings';
 
 const SettingsPage = () => {
   const [settings, setSettings] = useState({});
@@ -90,10 +87,7 @@ const SettingsPage = () => {
       <h2>Settings</h2>
       <ThemeSettings currentTheme={settings.theme} updateSetting={updateSetting} />
       <PaymentMethodSettings paymentMethod={paymentMethod} updateSetting={updateSetting} />
-      <NotificationsSettings updateSetting={updateSetting} />
-      <MessagesSettings updateSetting={updateSetting} />
       <AccountSettings updateSetting={updateSetting} />
-      <PrivacySettings updateSetting={updateSetting} />
       <div className="settings-section">
         <button className="button logout-button" onClick={handleBack}>Back</button>
       </div>

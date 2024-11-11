@@ -9,6 +9,7 @@ import SellerPage from './components/SellerPage';
 import LandingPage from './components/LandingPage';
 import Profile from './components/Profile';
 import SettingsPage from './components/Settings/SettingsPage';
+import LocationPage from './components/LocationPage';
 
 const isAuthenticated = () => {
   const token = localStorage.getItem('authToken');
@@ -84,6 +85,7 @@ const App = () => {
         {/* Public Routes */}
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/seller-page" element={<SellerPage />} />
+        <Route path="/location" element={<LocationPage />} />
       </Routes>
     </Router>
   );
