@@ -7,11 +7,16 @@ const AccountSettings = () => {
   const [newPassword, setNewPassword] = useState('');
   const [message, setMessage] = useState('');
 
-  const token = localStorage.getItem('authToken');
-
   const toggleOpen = () => setOpen(!open);
 
   const handleChangePassword = () => {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+      setMessage('Error changing password. Please try again.');
+      return;
+    }
+
     if (!oldPassword || !newPassword) {
       setMessage('Please enter both old and new passwords.');
       return;

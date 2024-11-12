@@ -13,41 +13,30 @@ const PaymentMethodSettings = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
 
-  // Fetch payment methods from the backend on mount
+  // Fetch payment methods from the backend when dropdown is opened
   useEffect(() => {
     if (open) {
       fetchPaymentMethods();
     }
   }, [open]);
 
-  const fetchPaymentMethods = () => {
+  const fetchPaymentMethods = async () => {
     const token = localStorage.getItem('authToken');
-    console.log('Auth token:', token); // Log token to ensure it's not null or undefined
-  
     if (!token) {
       setMessage('Please log in to view payment methods.');
       return;
     }
-  
-    axios
-      .get('http://localhost:5001/user/payment-methods', {
+
+    try {
+      const response = await axios.get('http://localhost:5001/user/payment-methods', {
         headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        console.log('Fetch response:', response); // Log full response for debugging
-        if (response.data.paymentMethods) {
-          setPaymentMethods(response.data.paymentMethods);
-        } else {
-          setPaymentMethods([]);
-          console.warn('No payment methods found in response');
-        }
-      })
-      .catch((error) => {
-        console.error('Error fetching payment methods:', error.response ? error.response.data : error.message);
-        setMessage('Failed to fetch payment methods. Please try again.');
       });
+      setPaymentMethods(response.data.paymentMethods || []);
+    } catch (error) {
+      console.error('Error fetching payment methods:', error);
+      setMessage('Failed to fetch payment methods. Please try again.');
+    }
   };
-  
 
   // Toggle the dropdown menu
   const toggleOpen = () => {
@@ -56,10 +45,9 @@ const PaymentMethodSettings = () => {
   };
 
   // Add a new payment method
-  const handleAddPaymentMethod = () => {
+  const handleAddPaymentMethod = async () => {
     const { cardNumber, expDate, cvv, country } = newPaymentMethod;
 
-    // Validation for each field
     if (!cardNumber || !expDate || !cvv || !country) {
       setMessage('Please fill in all payment details.');
       return;
@@ -72,40 +60,24 @@ const PaymentMethodSettings = () => {
     }
 
     setLoading(true);
-    axios
-      .put(
+    try {
+      await axios.put(
         'http://localhost:5001/user/payment-method',
         { cardNumber, expDate, cvv, country },
         { headers: { Authorization: `Bearer ${token}` } }
-      )
-      .then((response) => {
-        setMessage('Payment method added successfully!');
-        setPaymentMethods((prevMethods) => [...prevMethods, newPaymentMethod]);
-        setNewPaymentMethod({ cardNumber: '', expDate: '', cvv: '', country: '' }); // Clear input fields
-      })
-      .catch((error) => {
-        let errorMessage = 'Error updating payment method. Please try again.';
-
-        if (error.response) {
-          // Status-based error handling
-          if (error.response.status === 401) {
-            errorMessage = 'Unauthorized access. Please log in again.';
-          } else if (error.response.status === 500) {
-            errorMessage = 'Server error. Please try again later.';
-          } else if (error.response.data && error.response.data.message) {
-            errorMessage = error.response.data.message;
-          }
-
-          console.error('Error response data:', error.response.data);
-          console.error('Error response status:', error.response.status);
-          console.error('Error response headers:', error.response.headers);
-        } else {
-          console.error('Error message:', error.message);
-        }
-
-        setMessage(errorMessage);
-      })
-      .finally(() => setLoading(false));
+      );
+      setMessage('Payment method added successfully!');
+      setPaymentMethods((prevMethods) => [
+        ...prevMethods,
+        { cardNumber: cardNumber.slice(-4), expDate, country },
+      ]);
+      setNewPaymentMethod({ cardNumber: '', expDate: '', cvv: '', country: '' });
+    } catch (error) {
+      setMessage('Error updating payment method. Please try again.');
+      console.error('Error adding payment method:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -160,7 +132,7 @@ const PaymentMethodSettings = () => {
               {paymentMethods.length > 0 ? (
                 paymentMethods.map((method, index) => (
                   <li key={index}>
-                    Card: **** **** **** {method.cardNumber.slice(-4)}, Exp: {method.expDate}, Country: {method.country}
+                    Card: **** **** **** {method.cardNumber}, Exp: {method.expDate}, Country: {method.country}
                   </li>
                 ))
               ) : (
