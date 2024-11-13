@@ -1,64 +1,24 @@
-name: Full Stack CI/CD Pipeline
+name: CI
 
 on:
-  push:
-    branches:
-      - main  # Runs on push to the main branch
   pull_request:
-    branches:
-      - main  # Runs on pull requests targeting the main branch
+  push:
+    branches: [ master ]
 
 jobs:
-  # Frontend Job
-  frontend:
+  tests-linux:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [10.x, 12.x, 14.x, 16.x]
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3  # Check out the repository
-
-      - name: Set up Node.js (Frontend)
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
         with:
-          node-version: '16'  # Use Node.js version 16 for frontend
-
-      - name: Install frontend dependencies
-        run: |
-          cd frontend  # Navigate to your frontend directory
-          npm install  # Install frontend dependencies
-
-      - name: Run frontend tests
-        run: |
-          cd frontend  # Navigate to your frontend directory
-          npm test -- --coverage  # Run tests (with code coverage)
-
-      - name: Build frontend
-        run: |
-          cd frontend  # Navigate to your frontend directory
-          npm run build  # Build frontend for production
-
-  # Backend Job
-  backend:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3  # Check out the repository
-
-      - name: Set up Node.js (Backend)
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16'  # Use Node.js version 16 for backend
-
-      - name: Install backend dependencies
-        run: |
-          cd backend  # Navigate to your backend directory
-          npm install  # Install backend dependencies
-
-      - name: Run backend tests
-        run: |
-          cd backend  # Navigate to your backend directory
-          npm test -- --coverage  # Run backend tests (with code coverage)
-
-      - name: Build backend
-        run: |
-          cd backend  # Navigate to your backend directory
-          npm run build  # Build backend for production
+          node-version: ${{ matrix.node-version }}
+      - name: Install module
+        run: npm install
+      - name: Run tests
+        run: npm test
