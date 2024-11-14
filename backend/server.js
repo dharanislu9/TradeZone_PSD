@@ -7,6 +7,7 @@ const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
 const path = require('path');
 const nodemailer = require('nodemailer');
+const categoryRoutes = require('./routes/category');
 
 
 // Load environment variables
@@ -69,6 +70,7 @@ const upload = multer({ storage: storage, fileFilter: imageFilter });
 app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
 app.use(express.json());
 app.use('/uploads', express.static('uploads'));
+app.use('/api/categories', categoryRoutes);
 
 
 // Register Route

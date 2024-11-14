@@ -8,6 +8,9 @@ import ForgotPassword from './components/ForgotPassword';
 import SellerPage from './components/SellerPage';
 import LandingPage from './components/LandingPage';
 import Profile from './components/Profile'; // Import the Profile component
+import CategoryList from './components/CategoryList';
+import CategoryItems from './components/CategoryItems';
+
 
 
 const App = () => {
@@ -42,6 +45,8 @@ const App = () => {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/seller-page" element={<SellerPage />} />
         <Route path="/profile" element={isLoggedIn ? <Profile /> : <Navigate to="/login" />} /> {/* Add this line */}
+        <Route path="/categories" element={<CategoryList />} />
+        <Route path="/categories/:categoryId" element={<CategoryItems />} />
       </Routes>
     </Router>
   );
