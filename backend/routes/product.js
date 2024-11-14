@@ -19,10 +19,11 @@ const upload = multer({ storage: storage });
 // POST route to create a product with an image
 router.post("/products", upload.single("image"), async (req, res) => {
   try {
-    const { description, price } = req.body;
+    const { title, description, price } = req.body;
     const imageUrl = req.file ? `/uploads/${req.file.filename}` : null; // Save image path
 
     const newProduct = await ProductModel.create({
+      title,
       description,
       price,
       image_url: imageUrl, // Save the image path in the product document

@@ -38,7 +38,7 @@ const HomePage = () => {
     fetchProducts();
   }, []);
 
-  console.log(products)
+  console.log(products);
 
   // Filter products based on search query
   const filteredProducts = products.filter(product => 
@@ -52,6 +52,17 @@ const HomePage = () => {
           {/* Logo Container */}
           <div className="logo-container">
             <h1 className="logo-text">TradeZone</h1>
+          </div>
+
+          {/* Search Bar */}
+          <div className="search-bar-container">
+            <input
+              type="text"
+              placeholder="Search for a product..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="search-bar"
+            />
           </div>
 
           {/* Right-side Buttons Container */}
@@ -81,25 +92,16 @@ const HomePage = () => {
 
         {/* Right block for search and product scrolling */}
         <div className="right-block">
-          {/* Search Bar */}
-          <div className="search-bar-container">
-            <input
-              type="text"
-              placeholder="Search for a product..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="search-bar"
-            />
-          </div>
+          
 
           {/* Product Scrolling Section */}
           <div className="image-scroll">
-            {products.length?products.map((product) => (
+            {filteredProducts.length ? filteredProducts.map((product) => (
               <Link key={product._id} to={`/product/${product._id}`}>
-                <img src={`http://localhost:5001${product.image_url}`??`http://localhost:5001/${product.imagePath}`} alt={product.title || "Product Image"} />
+                <img src={`http://localhost:5001${product.image_url || product.imagePath}`} alt={product.title || "Product Image"} />
                 <p>{product.title}</p>
               </Link>
-            )):"No products Available"}
+            )) : "No products available"}
           </div>
         </div>
       </div>

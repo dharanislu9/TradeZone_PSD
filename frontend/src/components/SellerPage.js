@@ -5,6 +5,7 @@ const SellerPage = () => {
   // State to hold the form data
   const [formData, setFormData] = useState({
     image: null,
+    title: '',
     description: '',
     price: '',
   });
@@ -33,6 +34,7 @@ const SellerPage = () => {
     // Create FormData object to send as multipart/form-data
     const form = new FormData();
     form.append('image', formData.image); // Add image file to FormData
+    form.append('title', formData.title);
     form.append('description', formData.description);
     form.append('price', formData.price);
 
@@ -48,6 +50,7 @@ const SellerPage = () => {
         // Optionally reset the form
         setFormData({
           image: null,
+          title: '',
           description: '',
           price: '',
         });
@@ -72,6 +75,20 @@ const SellerPage = () => {
             name="image"
             accept="image/*"
             onChange={handleImageUpload}
+            required
+          />
+        </div>
+
+        {/* Title Field */}
+        <div className="form-group">
+          <label htmlFor="title">Product Title:</label>
+          <input
+            type="text"
+            id="title"
+            name="title"
+            value={formData.title}
+            onChange={handleInputChange}
+            placeholder="Enter the product title"
             required
           />
         </div>
