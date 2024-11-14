@@ -51,7 +51,7 @@ const HomePage = () => {
         <div className="header-container">
           {/* Logo Container */}
           <div className="logo-container">
-            <h1 className="logo-text">TradeZone</h1>
+            <Link to="/"><h1 className="logo-text">TradeZone</h1></Link>
           </div>
 
           {/* Search Bar */}
@@ -68,7 +68,7 @@ const HomePage = () => {
           {/* Right-side Buttons Container */}
           <div className="nav-buttons">
             <Link to="/login" className="button login-btn">Login</Link>
-            <button className="button" onClick={toggleDropdown}>Profile</button>
+            <button className="button" style={{marginTop: "0px"}} onClick={toggleDropdown}>Profile</button>
 
             {isDropdownOpen && (
               <div className="dropdown-menu">
