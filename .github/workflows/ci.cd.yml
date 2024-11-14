@@ -12,7 +12,7 @@ jobs:
   # Frontend Job
   frontend:
     runs-on: ubuntu-latest
-    timeout-minutes: 20  # Set a timeout to avoid indefinite running
+    timeout-minutes: 20  
 
     steps:
       - name: Checkout code
