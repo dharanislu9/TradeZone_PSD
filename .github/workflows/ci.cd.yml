@@ -74,16 +74,8 @@ jobs:
           cd backend
           CI=false npm run build
 
-      # Explicitly disconnect MongoDB in a cleanup step to avoid open handles
       - name: Cleanup and Close MongoDB Connections
         if: always()  # Ensures cleanup runs regardless of test results
         run: |
           cd backend
-          echo "Cleaning up MongoDB connections..."
-          node -e "
-          const mongoose = require('mongoose');
-          mongoose.connect('${{ secrets.MONGODB_URI }}', { useNewUrlParser: true, useUnifiedTopology: true })
-            .then(() => mongoose.disconnect())
-            .then(() => console.log('MongoDB connection closed'))
-            .catch(err => console.error('Error closing MongoDB connection:', err));
-          "
+          node -e "require('mongoose').disconnect();"
