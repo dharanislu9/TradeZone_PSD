@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "test": "mocha 'tests/**/*.test.js' --timeout 20000 --exit",
+    "test": "mocha --require ./tests/testSetup.js 'tests/**/*.test.js' --timeout 20000 --exit",
     "build": "echo 'Building backend...' && babel . -d dist --ignore 'node_modules','dist'"
   },
   "keywords": [],
