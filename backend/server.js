@@ -1,12 +1,13 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const multer = require('multer');
-const cors = require('cors');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const dotenv = require('dotenv');
-const path = require('path');
-const nodemailer = require('nodemailer');
+// Import necessary modules
+import express from 'express';
+import mongoose from 'mongoose';
+import multer from 'multer';
+import cors from 'cors';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
+import path from 'path';
+import nodemailer from 'nodemailer';
 
 dotenv.config();
 
@@ -68,12 +69,12 @@ const Product = mongoose.model('Product', productSchema);
 const verifyToken = (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(403).json({ error: 'Authorization header missing or malformed' });
+    return res.status(401).json({ error: 'Authorization header missing or malformed' });
   }
 
   const token = authHeader.split(' ')[1];
   if (!token) {
-    return res.status(403).json({ error: 'Token missing' });
+    return res.status(401).json({ error: 'Token missing' });
   }
 
   try {
@@ -112,18 +113,12 @@ app.use('/uploads', express.static('uploads'));
 
 app.post('/register', upload.single('image'), async (req, res) => {
   const { firstName, lastName, email, password, phone, address, location, radius } = req.body;
-  const image = req.file;
 
-  if (!firstName || !lastName || !email || !password || !phone || !address) {
-    return res.status(400).json({ error: 'All fields are required except for the image' });
+  if (!/^\S+@\S+\.\S+$/.test(email)) {
+    return res.status(400).json({ error: 'Invalid email format' });
   }
 
   try {
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ error: 'Email already registered' });
-    }
-
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new User({
       firstName,
@@ -132,18 +127,17 @@ app.post('/register', upload.single('image'), async (req, res) => {
       password: hashedPassword,
       phone,
       address,
-      locations: location && radius ? [{ city: location, radius }] : [], // Add location if provided
-      imagePath: image ? `uploads/${image.filename}` : undefined,
+      locations: location && radius ? [{ city: location, radius }] : [],
+      imagePath: req.file ? `uploads/${req.file.filename}` : undefined
     });
 
     await newUser.save();
-    res.status(201).json({ message: 'User registered successfully', locations: newUser.locations });
+    res.status(201).json({ message: 'User registered successfully' });
   } catch (error) {
     console.error('Error during registration:', error.message);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-
 
 // Login Route
 app.post('/login', async (req, res) => {
@@ -160,7 +154,7 @@ app.post('/login', async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ error: 'Invalid credentials' });
 
-    const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '90h' });
     res.status(200).json({ 
       token, 
       username: user.firstName, 
@@ -172,6 +166,7 @@ app.post('/login', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
 
 // Change Password Route
 app.put('/user/change-password', verifyToken, async (req, res) => {
@@ -249,6 +244,16 @@ app.get('/user', verifyToken, async (req, res) => {
 
 // Profile Update Route (PUT)
 app.put('/user', verifyToken, upload.single('image'), async (req, res) => {
+  const allowedFields = ['firstName', 'lastName', 'email', 'phone', 'image'];
+  const updates = Object.keys(req.body);
+
+  // Check if every field in the request is allowed
+  const isValidOperation = updates.every(update => allowedFields.includes(update));
+
+  if (!isValidOperation) {
+    return res.status(400).json({ error: 'Invalid field provided' });
+  }
+
   const { firstName, lastName, email, phone } = req.body;
   const image = req.file;
 
@@ -265,7 +270,6 @@ app.put('/user', verifyToken, upload.single('image'), async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-
 // GET user theme route
 app.get('/user/theme', verifyToken, async (req, res) => {
   try {
@@ -280,11 +284,17 @@ app.get('/user/theme', verifyToken, async (req, res) => {
 });
 
 // PUT user theme update route
+// PUT user theme update route
 app.put('/user/theme', verifyToken, async (req, res) => {
-  try {
-    const { theme } = req.body;
-    if (!theme) return res.status(400).json({ error: 'Theme value is required' });
+  const { theme } = req.body;
+  
+  // Validate theme value
+  const validThemes = ['light', 'dark'];
+  if (!theme || !validThemes.includes(theme)) {
+    return res.status(400).json({ error: 'Invalid theme value' });
+  }
 
+  try {
     const updatedUser = await User.findByIdAndUpdate(req.userId, { theme }, { new: true });
     res.status(200).json({ theme: updatedUser.theme });
   } catch (error) {
@@ -293,8 +303,7 @@ app.put('/user/theme', verifyToken, async (req, res) => {
   }
 });
 
-
-
+// Add or update a location
 app.put('/user/location', verifyToken, async (req, res) => {
   const { city, radius } = req.body;
 
@@ -453,6 +462,7 @@ app.get('/user/payment-methods', verifyToken, async (req, res) => {
 });
 
 // PUT Payment Method Route
+// PUT Payment Method Route
 app.put('/user/payment-method', verifyToken, async (req, res) => {
   console.log('Request Body:', req.body); // Log the request body for debugging
   const { cardNumber, expDate, cvv, country } = req.body;
@@ -462,23 +472,72 @@ app.put('/user/payment-method', verifyToken, async (req, res) => {
   }
 
   try {
-    const updatedUser = await User.findByIdAndUpdate(
-      req.userId,
-      { $push: { paymentMethods: { cardNumber, expDate, cvv, country } } },
-      { new: true }
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    // Check for duplicate payment method
+    const existingPaymentMethod = user.paymentMethods.find(
+      (method) => method.cardNumber === cardNumber
     );
 
-    if (!updatedUser) return res.status(404).json({ error: 'User not found' });
+    if (existingPaymentMethod) {
+      return res.status(400).json({ error: 'Duplicate payment method' });
+    }
 
-    res.status(200).json({ message: 'Payment method added successfully', paymentMethods: updatedUser.paymentMethods });
+    // Add the new payment method
+    user.paymentMethods.push({ cardNumber, expDate, cvv, country });
+    await user.save();
+
+    res.status(200).json({ message: 'Payment method added successfully', paymentMethods: user.paymentMethods });
   } catch (error) {
     console.error('Error updating payment method:', error.message);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
+// DELETE user account route
+app.delete('/user', verifyToken, async (req, res) => {
+  try {
+    const deletedUser = await User.findByIdAndDelete(req.userId);
+    if (!deletedUser) return res.status(404).json({ error: 'User not found' });
 
-// Start Server
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+    res.status(200).json({ message: 'User deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting user:', error.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
+
+app.put('/user', verifyToken, async (req, res) => {
+  const allowedFields = ['firstName', 'lastName', 'email', 'phone', 'address'];
+  const updates = Object.keys(req.body);
+
+  const isValidOperation = updates.every(update => allowedFields.includes(update));
+  if (!isValidOperation) {
+    return res.status(400).json({ error: 'Invalid field provided' });
+  }
+
+  try {
+    const updatedUser = await User.findByIdAndUpdate(
+      req.userId,
+      { $set: req.body },
+      { new: true }
+    );
+    if (!updatedUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.status(200).json(updatedUser);
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
+}
+
+export default app;

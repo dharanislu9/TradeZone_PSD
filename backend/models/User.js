@@ -1,6 +1,5 @@
-// models/User.js
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
+import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
 
 // Define the Payment Method schema as an embedded document schema
 const paymentMethodSchema = new mongoose.Schema({
@@ -68,6 +67,7 @@ userSchema.methods.isValidPassword = async function(password) {
   }
 };
 
-const User = mongoose.model('User', userSchema);
+// Check if the User model already exists to prevent OverwriteModelError
+const User = mongoose.models.User || mongoose.model('User', userSchema);
 
-module.exports = User;
+export default User;

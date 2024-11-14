@@ -1,10 +1,12 @@
 {
   "name": "backend",
   "version": "1.0.0",
+  "type": "module",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node index.js",
+    "test": "mocha 'tests/**/*.test.js' --timeout 20000 --exit",
+    "build": "echo 'Building backend...' && babel . -d dist --ignore 'node_modules','dist'"
   },
   "keywords": [],
   "author": "",
@@ -19,9 +21,20 @@
     "express": "^4.21.1",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.9.0",
-    "mongoose": "^8.7.2",
+    "mongoose": "^8.8.1",
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.15"
   },
-  "description": ""
+  "description": "",
+  "devDependencies": {
+    "chai": "^5.1.2",
+    "mocha": "^10.8.2",
+    "supertest": "^7.0.0",
+    "@babel/cli": "^7.21.0",
+    "@babel/core": "^7.21.0",
+    "@babel/preset-env": "^7.21.0"
+  },
+  "babel": {
+    "presets": ["@babel/preset-env"]
+  }
 }

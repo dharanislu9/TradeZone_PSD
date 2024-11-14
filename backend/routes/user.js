@@ -1,10 +1,10 @@
 // routes/user.js
-const express = require('express');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
-const multer = require('multer');
-const path = require('path');
-const User = require('../models/User'); // Import the User model
+import express from 'express';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
+import multer from 'multer';
+import path from 'path';
+import User from '../models/User.js';
 const router = express.Router();
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
@@ -66,6 +66,7 @@ router.post('/register', upload.single('image'), async (req, res) => {
       password: hashedPassword,
       phone,
       address,
+      locations: location && radius ? [{ city: location, radius }] : [],
       imagePath: image ? `uploads/${image.filename}` : undefined,
     });
 
@@ -243,4 +244,4 @@ app.put('/user/location', verifyToken, async (req, res) => {
 });
 
 
-module.exports = router;
+export default router;
