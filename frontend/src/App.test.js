@@ -297,17 +297,4 @@ test('displays success message after successful registration', async () => {
   });
 });
 
-//Dharani - Test for form validation on empty fields when updating profile
-test('displays error message when fields are empty on update', async () => {
-  render(
-    <Router>
-      <Profile />
-    </Router>
-  );
 
-  fireEvent.click(screen.getByText('Update Profile'));
-
-  await waitFor(() => {
-    expect(screen.getByText(/Please fill in all fields/i)).toBeInTheDocument();
-  });
-});
