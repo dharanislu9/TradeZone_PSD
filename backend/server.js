@@ -8,6 +8,7 @@ const dotenv = require('dotenv');
 const path = require('path');
 const nodemailer = require('nodemailer');
 const categoryRoutes = require('./routes/category');
+const eventRoutes = require('./routes/event');
 
 
 // Load environment variables
@@ -71,6 +72,7 @@ app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
 app.use(express.json());
 app.use('/uploads', express.static('uploads'));
 app.use('/api/categories', categoryRoutes);
+app.use('/api/events',eventRoutes);
 
 
 // Register Route

@@ -1,0 +1,46 @@
+/* src/components/EventList.css */
+
+.event-list {
+    padding: 20px;
+    text-align: center;
+  }
+  
+  .event-list h2 {
+    font-size: 2em;
+    margin-bottom: 20px;
+    font-weight: bold;
+  }
+  
+  .events-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    justify-items: center;
+  }
+  
+  .event-item {
+    border: 1px solid #ddd;
+    padding: 15px;
+    text-align: center;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .event-item img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin-bottom: 10px;
+  }
+  
+  .event-item h3 {
+    font-size: 1.5em;
+    color: #333;
+    margin: 10px 0;
+  }
+  
+  .event-item p {
+    font-size: 1em;
+    color: #555;
+  }

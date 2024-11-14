@@ -71,6 +71,7 @@ const HomePage = () => {
             <Link to="/settings">Settings</Link>
             <Link to="/categories">Categories</Link>
             <Link to="/appearance">Appearance</Link>
+            <Link to="/events">Event</Link>
           </div>
         </div>
 

@@ -10,6 +10,7 @@ import LandingPage from './components/LandingPage';
 import Profile from './components/Profile'; // Import the Profile component
 import CategoryList from './components/CategoryList';
 import CategoryItems from './components/CategoryItems';
+import EventList from './components/EventList';
 
 
 
@@ -47,6 +48,7 @@ const App = () => {
         <Route path="/profile" element={isLoggedIn ? <Profile /> : <Navigate to="/login" />} /> {/* Add this line */}
         <Route path="/categories" element={<CategoryList />} />
         <Route path="/categories/:categoryId" element={<CategoryItems />} />
+        <Route path="/events" element={<EventList />}/>
       </Routes>
     </Router>
   );
