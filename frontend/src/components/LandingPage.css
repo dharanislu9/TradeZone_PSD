@@ -91,6 +91,27 @@
     color: #fff; /* Ensure white text on blue background */
     margin-bottom: 30px;
   }
+
+  /* LandingPage.css */
+
+.navbar-right {
+  display: flex;
+  gap: 10px;
+}
+
+.become-seller, .login-btn {
+  padding: 10px 15px;
+  background-color: #000;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+}
+
+.become-seller:hover, .login-btn:hover {
+  background-color: #555;
+}
+
   
   .shop-now {
     background-color: black;

@@ -1,13 +1,14 @@
-/ models/Product.js
+import mongoose from 'mongoose';
 const mongoose = require('mongoose');
 
 
 const productSchema = new mongoose.Schema({
-  description: { type: String, required: true },
-  price: { type: Number, required: true },
-  worth: { type: Number, default: 50 },
+  description: String,
+  price: Number,
+  imagePath: String,
+  sellerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 });
 
+// Check if the Product model already exists before defining it
+export default mongoose.models.Product || mongoose.model('Product', productSchema);
 
-const Product = mongoose.model('Product', productSchema);
-module.exports = Product;

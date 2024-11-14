@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Register.css';
 
-
 const Register = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [username, setUsername] = useState(''); // Added username state
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -17,7 +17,6 @@ const Register = () => {
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false); // Added loading state
   const navigate = useNavigate();
-
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -41,29 +40,25 @@ const Register = () => {
     }
   };
 
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-
 
     if (password !== confirmPassword) {
       setError('Passwords do not match');
       return;
     }
 
-
     const formData = new FormData();
     formData.append('firstName', firstName);
     formData.append('lastName', lastName);
+    formData.append('username', username); // Added username to formData
     formData.append('email', email);
     formData.append('password', password);
     formData.append('address', address);
     formData.append('phone', phone);
     if (image) formData.append('image', image);
 
-
     setLoading(true); // Set loading to true before request
-
 
     try {
       const response = await fetch('http://localhost:5001/register', {
@@ -71,13 +66,11 @@ const Register = () => {
         body: formData,
       });
 
-
       const data = await response.json();
       if (!response.ok) {
         setError(data.error || 'Registration failed');
         return;
       }
-
 
       setSuccess('Registration successful! Redirecting to login...');
       setTimeout(() => {
@@ -92,10 +85,10 @@ const Register = () => {
     }
   };
 
-
   const resetForm = () => {
     setFirstName('');
     setLastName('');
+    setUsername(''); // Reset username
     setEmail('');
     setPassword('');
     setConfirmPassword('');
@@ -106,7 +99,6 @@ const Register = () => {
     setError('');
     setSuccess('');
   };
-
 
   return (
     <div className="register-container">
@@ -129,6 +121,15 @@ const Register = () => {
             placeholder="Last Name"
             value={lastName}
             onChange={(e) => setLastName(e.target.value)}
+            required
+          />
+        </div>
+        <div className="input-box">
+          <input
+            type="text"
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
             required
           />
         </div>
@@ -188,6 +189,5 @@ const Register = () => {
     </div>
   );
 };
-
 
 export default Register;
