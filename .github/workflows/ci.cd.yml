@@ -1,0 +1,81 @@
+name: Full Stack CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  # Frontend Job
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20  # Set a timeout to avoid indefinite running
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js (Frontend)
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm install
+          # Install missing Babel dependency to suppress warnings
+          npm install @babel/plugin-proposal-private-property-in-object --save-dev
+
+      - name: Run frontend tests
+        run: |
+          cd frontend
+          npm test -- --coverage
+
+      - name: Build frontend
+        run: |
+          cd frontend
+          CI=false npm run build  # Suppresses warnings from failing the build in CI
+
+  # Backend Job
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20  # Set a timeout to avoid indefinite running
+
+    env:
+      MONGO_URI: ${{ secrets.MONGODB_URI }}  # Use MongoDB Atlas URI from GitHub Secrets
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}   # Use JWT Secret from GitHub Secrets
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js (Backend)
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Install backend dependencies
+        run: |
+          cd backend
+          npm install
+
+      - name: Run backend tests
+        run: |
+          cd backend
+          # Using --exit to ensure Mocha exits after tests finish
+          npm test -- --timeout 20000 --exit
+
+      - name: Build backend
+        run: |
+          cd backend
+          CI=false npm run build
+
+      - name: Cleanup and Close MongoDB Connections
+        if: always()  # Ensures cleanup runs regardless of test results
+        run: |
+          cd backend
+          node -e "require('mongoose').disconnect();"
