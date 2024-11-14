@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import './ProductDetails.css';
 
+
 const ProductDetails = () => {
   const { id } = useParams();
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
   const [worth, setWorth] = useState(50);
   const [message, setMessage] = useState('');
+
 
   const productImages = {
     1: "https://th.bing.com/th/id/OIP.qwy2jAdkv5p4kmRI5b02fwHaHa?w=179&h=180&c=7&r=0&o=5&dpr=1.3&pid=1.7",
@@ -16,19 +18,23 @@ const ProductDetails = () => {
     4: "https://th.bing.com/th/id/OIP.mDbfiLwyexcVa2e0iXz8RgHaFj?rs=1&pid=ImgDetMain",
   };
 
+
   const handleSubmit = async (e) => {
     e.preventDefault(); // Prevent default form submission
 
+
     const productData = { description, price, worth };
 
+
     try {
-      const response = await fetch('http://localhost:5000/api/products', {
+      const response = await fetch('http://localhost:5001/api/products', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(productData),
       });
+
 
       if (response.ok) {
         const data = await response.json();
@@ -46,6 +52,7 @@ const ProductDetails = () => {
       setMessage('Failed to save product.');
     }
   };
+
 
   return (
     <div className="product-details">
@@ -82,5 +89,6 @@ const ProductDetails = () => {
     </div>
   );
 };
+
 
 export default ProductDetails;
