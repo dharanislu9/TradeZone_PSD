@@ -1,3 +1,4 @@
+/* Container for Product Details */
 .product-details {
   display: flex;
   flex-direction: column;
@@ -10,6 +11,7 @@
   border-radius: 8px;
 }
 
+/* Product Image Styling */
 .product-image {
   width: 300px; /* Set width for the product image */
   height: auto; /* Maintain aspect ratio */
@@ -17,6 +19,7 @@
   margin-bottom: 20px; /* Space between image and info */
 }
 
+/* Container for Product Information */
 .product-info {
   width: 100%;
   max-width: 400px; /* Max width for the product info */
@@ -29,6 +32,7 @@
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
+/* Description Textarea Styling */
 .description-box {
   width: 100%;
   height: 80px; /* Fixed height for the textarea */
@@ -40,6 +44,7 @@
   resize: none; /* Disable resizing */
 }
 
+/* Price Input Styling */
 .price-input {
   width: 100%;
   border: 1px solid #ccc; /* Border for the price input */
@@ -49,6 +54,7 @@
   margin-bottom: 15px; /* Space below input */
 }
 
+/* Worth Slider Styling */
 .worth-slider {
   width: 100%;
   display: flex;
@@ -61,18 +67,19 @@
   font-weight: bold; /* Bold label text */
 }
 
+/* Slider Track Styling */
 .worth-slider input[type="range"] {
   -webkit-appearance: none; /* Chrome, Safari, newer versions of Edge */
   -moz-appearance: none; /* Firefox */
   appearance: none; /* Standard */
   width: 100%;
   height: 5px;
-  background: #c8e6c9;
+  background: #c8e6c9; /* Default background color */
   border-radius: 5px;
   outline: none;
 }
 
-
+/* Slider Thumb Styling for Webkit Browsers */
 .worth-slider input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none; /* Remove default styling */
   appearance: none; /* Remove default styling */
@@ -83,6 +90,7 @@
   cursor: pointer; /* Pointer cursor on hover */
 }
 
+/* Slider Thumb Styling for Mozilla Browsers */
 .worth-slider input[type="range"]::-moz-range-thumb {
   width: 20px; /* Thumb width */
   height: 20px; /* Thumb height */
@@ -97,7 +105,6 @@ button {
   font-size: 20px;
   background: #212121;
   color: white;
-  fill: rgb(155, 153, 153);
   padding: 0.7em 1em;
   padding-left: 0.9em;
   display: flex;
@@ -106,27 +113,27 @@ button {
   border: none;
   border-radius: 15px;
   font-weight: 1000;
+  transition: background 0.3s, transform 0.1s;
 }
 
 button span {
   display: block;
   margin-left: 0.3em;
-  transition: all 0.3s ease-in-out;
-}
-
-button svg {
-  display: block;
-  transform-origin: center center;
-  transition: transform 0.3s ease-in-out;
+  transition: opacity 0.3s ease-in-out;
 }
 
 button:hover {
   background: #000;
 }
 
+button:active {
+  transform: scale(0.95);
+}
+
+/* Button Hover Effects */
 button:hover .svg-wrapper {
   transform: scale(1.25);
-  transition: 0.5s linear;
+  transition: transform 0.5s linear;
 }
 
 button:hover svg {
@@ -136,9 +143,14 @@ button:hover svg {
 
 button:hover span {
   opacity: 0;
-  transition: 0.5s linear;
+  transition: opacity 0.5s linear;
 }
 
-button:active {
-  transform: scale(0.95);
+/* Response Message Styling */
+.response-message {
+  margin-top: 15px;
+  font-size: 16px;
+  color: #4CAF50; /* Green for success */
+  font-weight: bold;
+  text-align: center;
 }
