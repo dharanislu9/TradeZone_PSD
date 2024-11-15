@@ -1,7 +1,6 @@
-// SellerPage.js
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate from react-router-dom
-import './SellerPage.css'; // Import your CSS file
+import { useNavigate } from 'react-router-dom';
+import './SellerPage.css';
 
 const SellerPage = () => {
   const [formData, setFormData] = useState({
@@ -9,11 +8,10 @@ const SellerPage = () => {
     description: '',
     price: '',
   });
-
   const [successMessage, setSuccessMessage] = useState('');
-  const navigate = useNavigate(); // Initialize useNavigate inside the component
+  const [loading, setLoading] = useState(false); // Loading state
+  const navigate = useNavigate();
 
-  // Handle input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({
@@ -22,7 +20,6 @@ const SellerPage = () => {
     });
   };
 
-  // Handle image upload
   const handleImageUpload = (e) => {
     setFormData({
       ...formData,
@@ -30,23 +27,22 @@ const SellerPage = () => {
     });
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Create FormData object
+    if (!formData.image || !formData.description || !formData.price) {
+      alert('Please fill out all fields.');
+      return;
+    }
+    setLoading(true); // Start loading
     const data = new FormData();
     data.append('image', formData.image);
     data.append('description', formData.description);
     data.append('price', formData.price);
 
-    // Retrieve the token from localStorage right before making the request
     const token = localStorage.getItem('authToken');
-    console.log('Auth Token:', token); // Debug log to check token
-
-    // Check if token exists
     if (!token) {
       alert('You need to be logged in to submit a product.');
+      setLoading(false);
       return;
     }
 
@@ -59,22 +55,21 @@ const SellerPage = () => {
         },
       });
 
-      // Check if response is OK
       if (response.ok) {
         setSuccessMessage('Product submitted successfully!');
         setFormData({ image: null, description: '', price: '' });
-        
-        // Redirect to LandingPage after 2 seconds
-        setTimeout(() => navigate('/'), 2000); 
+        setTimeout(() => {
+          setSuccessMessage('');
+          navigate('/');
+        }, 2000);
       } else {
-        // Extract error message from response
         const errorData = await response.json();
-        console.error('Error from server:', errorData);
         alert(`Failed to submit product: ${errorData.error}`);
       }
     } catch (error) {
-      console.error('Error submitting product:', error);
       alert('An error occurred while submitting the product. Please try again.');
+    } finally {
+      setLoading(false); // Stop loading
     }
   };
 
@@ -87,7 +82,6 @@ const SellerPage = () => {
         </div>
       )}
       <form onSubmit={handleSubmit} className="seller-form">
-        {/* Image Upload Field */}
         <div className="form-group">
           <label htmlFor="image">Product Image:</label>
           <input 
@@ -99,8 +93,6 @@ const SellerPage = () => {
             required
           />
         </div>
-
-        {/* Description Field */}
         <div className="form-group">
           <label htmlFor="description">Product Description:</label>
           <textarea
@@ -112,8 +104,6 @@ const SellerPage = () => {
             required
           />
         </div>
-
-        {/* Price Field */}
         <div className="form-group">
           <label htmlFor="price">Product Price ($):</label>
           <input
@@ -127,9 +117,10 @@ const SellerPage = () => {
             required
           />
         </div>
-
-        {/* Submit Button */}
-        <button type="submit" className="submit-button">Submit Product</button>
+        <button type="submit" className="submit-button" disabled={loading}>
+          {loading ? 'Submitting...' : 'Submit Product'}
+        </button>
+        <button type="button" onClick={() => navigate('/')}>Back</button>
       </form>
     </div>
   );

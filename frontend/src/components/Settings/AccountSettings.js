@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import './SettingsPage.css';
 
 const AccountSettings = () => {
   const [open, setOpen] = useState(false);

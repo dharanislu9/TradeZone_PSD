@@ -103,7 +103,7 @@ const Profile = () => {
         <input type="tel" name="phone" value={user.phone} onChange={handleChange} placeholder="Phone" required />
         <input type="file" accept="image/*" onChange={handleImageChange} />
         <button type="submit">Update Profile</button>
-        <button type="button" onClick={() => navigate('/')}>Back to Home</button>
+        <button type="button" onClick={() => navigate('/home')}>Back</button>
       </form>
 
       {/* Only "Logout" button */}

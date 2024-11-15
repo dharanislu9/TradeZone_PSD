@@ -10,6 +10,7 @@ import LandingPage from './components/LandingPage';
 import Profile from './components/Profile';
 import SettingsPage from './components/Settings/SettingsPage';
 import LocationPage from './components/LocationPage';
+import CartPage from './components/CartPage'; // Import the CartPage component
 
 const isAuthenticated = () => {
   const token = localStorage.getItem('authToken');
@@ -43,13 +44,11 @@ const App = () => {
     localStorage.removeItem('authToken'); // Ensure this key matches the token storage
   };
 
-  // Handler for updating theme
   const handleThemeChange = (newTheme) => {
     setTheme(newTheme);
     localStorage.setItem('theme', newTheme);
   };
 
-  // Retrieve the stored theme on initial load
   useEffect(() => {
     const storedTheme = localStorage.getItem('theme');
     if (storedTheme) setTheme(storedTheme);
@@ -78,6 +77,14 @@ const App = () => {
           element={
             <ProtectedRoute>
               <SettingsPage theme={theme} onThemeChange={handleThemeChange} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/cart"
+          element={
+            <ProtectedRoute>
+              <CartPage /> {/* Cart page protected by authentication */}
             </ProtectedRoute>
           }
         />

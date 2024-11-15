@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import './SettingsPage.css';
 
 const ThemeSettings = ({ currentTheme, updateSetting }) => {
   const [open, setOpen] = useState(false);

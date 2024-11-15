@@ -74,7 +74,7 @@ const SettingsPage = () => {
   };
 
   const handleBack = () => {
-    navigate('/'); // Redirect to the home or landing page
+    navigate('/home'); // Redirect to the home or landing page
   };
 
   const handleLogout = () => {
