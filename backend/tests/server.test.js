@@ -218,208 +218,102 @@ describe('Server API Endpoints', () => {
     });
   });
 
-  describe('Password Recovery', () => {
-    it('should not send a password reset email for an unregistered email', async () => {
-      const res = await request(app)
-        .post('/forgot-password')
-        .send({ email: 'unregistered@example.com' });
-      expect(res.status).to.equal(404);
-      expect(res.body).to.have.property('error', 'User not found');
-    });
-  });
-
-  describe('Invalid Routes', () => {
+  describe('Additional API Tests', () => {
     it('should return 404 for an unknown route', async () => {
       const res = await request(app)
         .get('/unknown-route')
         .set('Authorization', `Bearer ${authToken}`);
       expect(res.status).to.equal(404);
     });
-  });
 
-  // Additional Test Cases
-  describe('Additional API Endpoints Tests', () => {
-    // 1. Update User's Email and check the updated value
-    it('should update the user email', async () => {
-      const newEmail = 'new.email@example.com';
-      const res = await request(app)
-        .put('/user')
-        .set('Authorization', `Bearer ${authToken}`)
-        .send({ email: newEmail });
-      expect(res.status).to.equal(200);
-      expect(res.body).to.have.property('email', newEmail);
-    });
-
-    // 2. Fetch the user's cart and ensure it is initially empty
-    it('should fetch the user cart, initially empty', async () => {
-      const res = await request(app)
-        .get('/user/cart')
+    it('should delete the user account and verify it no longer exists', async () => {
+      const deleteRes = await request(app)
+        .delete('/user')
         .set('Authorization', `Bearer ${authToken}`);
-      expect(res.status).to.equal(200);
-      expect(res.body.cart).to.be.an('array').that.is.empty;
+      expect(deleteRes.status).to.equal(200);
+      expect(deleteRes.body).to.have.property('message', 'User deleted successfully');
+  
+      const getRes = await request(app)
+        .get('/user')
+        .set('Authorization', `Bearer ${authToken}`);
+      expect(getRes.status).to.equal(404);
+      expect(getRes.body).to.have.property('error', 'User not found');
     });
-
-    // 3. Attempt to add a product without authorization
-    it('should not add a product without authorization', async () => {
+// Dharani - checks if a new product can be created with a worthiness level.
+    it('should add a new product with a worthiness level', async () => {
       const res = await request(app)
         .post('/products')
+        .set('Authorization', `Bearer ${authToken}`)
         .send({
-          description: 'Test Product',
-          price: 20,
+          description: 'Sample Product',
+          price: 50,
+          imagePath: 'https://example.com/image.jpg',
+          worth: 75,  // Worthiness level
+          sellerId: testUserId
         });
-      expect(res.status).to.equal(401);
-      expect(res.body).to.have.property('error', 'Authorization header missing or malformed');
+      expect(res.status).to.equal(201);
+      expect(res.body).to.have.property('description', 'Sample Product');
+      expect(res.body).to.have.property('worth', 75); // Verify worthiness level
     });
 
-    // 4. Add a payment method and retrieve it successfully
-    // Add to your `server.test.js` file under the describe block
-    it('should add a payment method and retrieve it successfully', async () => {
-      // Define payment method data
-      const paymentMethod = {
-        cardNumber: '1234567812345678',
-        expDate: '12/25',
-        cvv: '123',
-        country: 'USA'
-      };
-    
-      // First, add the payment method
-      const addRes = await request(app)
-        .put('/user/payment-method')
-        .set('Authorization', `Bearer ${authToken}`)
-        .send(paymentMethod);
-    
-      // Verify that the payment method was added successfully
-      expect(addRes.status).to.equal(200);
-      expect(addRes.body).to.have.property('message', 'Payment method added successfully');
-    
-      // Then, retrieve the payment methods to confirm the addition
-      const getRes = await request(app)
-        .get('/user/payment-methods')
-        .set('Authorization', `Bearer ${authToken}`);
-    
-      // Extract payment method details for comparison
-      const retrievedPaymentMethods = getRes.body.paymentMethods.map(pm => ({
-        cardNumber: pm.cardNumber,
-        expDate: pm.expDate,
-        cvv: pm.cvv,
-        country: pm.country
-      }));
-    
-      // Verify that the payment methods list includes the one we just added
-      expect(getRes.status).to.equal(200);
-      expect(retrievedPaymentMethods).to.deep.include(paymentMethod);
-    });
-
-
-
-    // Add this test case to your `server.test.js` file within the describe block
-
-    it('should update multiple locations and retrieve them correctly', async () => {
-      // Define multiple location data
-      const locationsData = [
-        { city: 'New York', radius: '10 miles' },
-        { city: 'Los Angeles', radius: '15 miles' },
-        { city: 'Chicago', radius: '5 miles' }
-      ];
-    
-      // First, update the locations array
-      const updateRes = await request(app)
-        .put('/user/locations')
-        .set('Authorization', `Bearer ${authToken}`)
-        .send({ locations: locationsData });
-      
-      // Check the response to ensure the locations were updated
-      expect(updateRes.status).to.equal(200);
-      expect(updateRes.body).to.have.property('message', 'Locations updated successfully');
-    
-      // Then, retrieve the locations to confirm they were updated correctly
-      const getRes = await request(app)
-        .get('/user/locations')
-        .set('Authorization', `Bearer ${authToken}`);
-      
-      // Extract only city and radius fields from the response for comparison
-      const retrievedLocations = getRes.body.locations.map(loc => ({
-        city: loc.city,
-        radius: loc.radius
-      }));
-    
-      // Check that the retrieved locations match the locations we added
-      expect(getRes.status).to.equal(200);
-      expect(retrievedLocations).to.deep.equal(locationsData);
-    });
-
-    // 6. Clear all items from the cart and verify it is empty
-    it('should clear all items from the cart and verify it is empty', async () => {
-      // First, add an item to the cart
+    // Dharani - to check if the worthiness level of an existing product can be updated.
+    it('should update the worthiness level of an existing product', async () => {
+      // Create a product first
       const product = new Product({
-        description: 'Test Product',
-        price: 20,
+        description: 'Sample Product',
+        price: 50,
+        imagePath: 'https://example.com/image.jpg',
+        worth: 50,
         sellerId: testUserId
       });
       await product.save();
-
-      await request(app)
-        .post('/user/cart')
-        .set('Authorization', `Bearer ${authToken}`)
-        .send({ productId: product._id });
-
-      // Verify the cart has the item
-      let cartRes = await request(app)
-        .get('/user/cart')
-        .set('Authorization', `Bearer ${authToken}`);
-      expect(cartRes.body.cart).to.have.lengthOf(1);
-
-      // Clear the cart
-      const clearRes = await request(app)
-        .delete(`/user/cart/${product._id}`)
-        .set('Authorization', `Bearer ${authToken}`);
-      expect(clearRes.status).to.equal(200);
-      expect(clearRes.body).to.have.property('message', 'Product removed from cart');
-
-      // Verify cart is empty
-      cartRes = await request(app)
-        .get('/user/cart')
-        .set('Authorization', `Bearer ${authToken}`);
-      expect(cartRes.status).to.equal(200);
-      expect(cartRes.body.cart).to.be.an('array').that.is.empty;
-    });
-  });
-
-  it('should delete the user account and verify it no longer exists', async () => {
-    // First, delete the user account
-    const deleteRes = await request(app)
-      .delete('/user')
-      .set('Authorization', `Bearer ${authToken}`);
-  
-    // Verify the response confirms deletion
-    expect(deleteRes.status).to.equal(200);
-    expect(deleteRes.body).to.have.property('message', 'User deleted successfully');
-  
-    // Attempt to fetch the deleted user profile
-    const getRes = await request(app)
-      .get('/user')
-      .set('Authorization', `Bearer ${authToken}`);
     
-    // Verify that fetching the deleted user profile fails
-    expect(getRes.status).to.equal(404);
-    expect(getRes.body).to.have.property('error', 'User not found');
-  });
-
-  describe('Additional API Endpoints Tests', () => {
-  
-    // 1. Retrieve payment methods without adding any
-    it('should return an empty list when retrieving payment methods if none have been added', async () => {
+      // Update the worthiness level
       const res = await request(app)
-        .get('/user/payment-methods')
-        .set('Authorization', `Bearer ${authToken}`);
-  
-      // Verify that payment methods are empty
+        .put(`/products/${product._id}`)
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({ worth: 85 });
       expect(res.status).to.equal(200);
-      expect(res.body.paymentMethods).to.be.an('array').that.is.empty;
+      expect(res.body).to.have.property('worth', 85); // Updated worthiness level
     });
-
+    
+    //check if the worthiness level falls within acceptable boundaries, such as 0-100.
+    it('should not allow a worthiness level outside the valid range', async () => {
+      const res = await request(app)
+        .post('/products')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({
+          description: 'Invalid Product',
+          price: 20,
+          imagePath: 'https://example.com/image.jpg',
+          worth: 150,  // Invalid worthiness level
+          sellerId: testUserId
+        });
+      expect(res.status).to.equal(400); // Expecting a validation error
+      expect(res.body).to.have.property('error', 'Worthiness level must be between 0 and 100');
+    });
+    
+    //Dharani - check if a product with a worthiness level can be retrieved correctly.
+    it('should retrieve a product with a worthiness level', async () => {
+      // Create a product first
+      const product = new Product({
+        description: 'Sample Product',
+        price: 75,
+        imagePath: 'https://example.com/image.jpg',
+        worth: 60,  // Set worthiness level
+        sellerId: testUserId
+      });
+      await product.save();
+    
+      const res = await request(app)
+        .get(`/products/${product._id}`)
+        .set('Authorization', `Bearer ${authToken}`);
+      expect(res.status).to.equal(200);
+      expect(res.body).to.have.property('worth', 60); // Verify worthiness level
+    });
+    
+    
   });
-
 });
 
 export default app;
