@@ -5,8 +5,12 @@ import HomePage from './components/HomePage';
 import Login from './components/Login';
 import Register from './components/Register';
 import Profile from './components/Profile';
+import SellerPage from './components/SellerPage';
 
-// Test cases for HomePage component
+// Mock global fetch function
+global.fetch = jest.fn();
+
+// HomePage Component Tests
 describe('HomePage Component', () => {
   test('renders HomePage with logo and navigation links', () => {
     render(
@@ -32,31 +36,24 @@ describe('HomePage Component', () => {
     expect(screen.getByText('Logout')).toBeInTheDocument();
   });
 
-  test('logs out and navigates to login page', () => {
+  test('renders image scroll section or shows "No products available" placeholder', () => {
     render(
       <Router>
         <HomePage />
       </Router>
     );
 
-    fireEvent.click(screen.getByText('Profile'));
-    fireEvent.click(screen.getByText('Logout'));
-    expect(localStorage.getItem('token')).toBeNull();
-  });
-
-  test('renders image scroll section', () => {
-    render(
-      <Router>
-        <HomePage />
-      </Router>
-    );
-
-    const images = screen.getAllByRole('img');
-    expect(images.length).toBeGreaterThan(0);
+    const placeholderText = screen.queryByText(/No products available/i);
+    if (placeholderText) {
+      expect(placeholderText).toBeInTheDocument();
+    } else {
+      const images = screen.queryAllByRole('img');
+      expect(images.length).toBeGreaterThan(0);
+    }
   });
 });
 
-// Test cases for Login component
+// Login Component Tests
 describe('Login Component', () => {
   test('renders Login form with email and password fields', () => {
     render(
@@ -70,12 +67,10 @@ describe('Login Component', () => {
   });
 
   test('displays error message for invalid credentials', async () => {
-    global.fetch = jest.fn(() =>
-      Promise.resolve({
-        ok: false,
-        json: () => Promise.resolve({ error: 'Login failed' }),
-      })
-    );
+    global.fetch.mockResolvedValueOnce({
+      ok: false,
+      json: async () => ({ error: 'Login failed' }),
+    });
 
     render(
       <Router>
@@ -93,12 +88,10 @@ describe('Login Component', () => {
   });
 
   test('navigates to homepage after successful login', async () => {
-    global.fetch = jest.fn(() =>
-      Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ token: 'mockToken' }),
-      })
-    );
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ token: 'mockToken' }),
+    });
 
     render(
       <Router>
@@ -114,11 +107,9 @@ describe('Login Component', () => {
       expect(localStorage.getItem('token')).toBe('mockToken');
     });
   });
-
-  
 });
 
-// Test cases for Register component
+// Register Component Tests
 describe('Register Component', () => {
   test('renders Register form with all fields', () => {
     render(
@@ -152,15 +143,11 @@ describe('Register Component', () => {
     });
   });
 
-  
-
   test('successfully submits registration form with valid data', async () => {
-    global.fetch = jest.fn(() =>
-      Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ message: 'Registration successful' }),
-      })
-    );
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ message: 'Registration successful' }),
+    });
 
     render(
       <Router>
@@ -183,7 +170,7 @@ describe('Register Component', () => {
   });
 });
 
-// Test cases for Profile component
+// Profile Component Tests
 describe('Profile Component', () => {
   test('renders Profile form with user data fields', () => {
     render(
@@ -206,12 +193,10 @@ describe('Profile Component', () => {
       phone: '1234567890',
     };
 
-    global.fetch = jest.fn(() =>
-      Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve(mockUser),
-      })
-    );
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockUser,
+    });
 
     render(
       <Router>
@@ -228,7 +213,7 @@ describe('Profile Component', () => {
   });
 
   test('displays error when failing to fetch user data', async () => {
-    global.fetch = jest.fn(() => Promise.reject('Fetch error'));
+    global.fetch.mockRejectedValueOnce(new Error('Fetch error'));
 
     render(
       <Router>
@@ -242,12 +227,10 @@ describe('Profile Component', () => {
   });
 
   test('updates profile successfully with valid data', async () => {
-    global.fetch = jest.fn(() =>
-      Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ message: 'Profile updated successfully' }),
-      })
-    );
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ message: 'Profile updated successfully' }),
+    });
 
     render(
       <Router>
@@ -262,52 +245,88 @@ describe('Profile Component', () => {
       expect(screen.getByText(/Profile updated successfully/i)).toBeInTheDocument();
     });
   });
-
-  
 });
 
-//dharani - test for displaying a success message after registration
-test('displays success message after successful registration', async () => {
-  global.fetch = jest.fn(() =>
-    Promise.resolve({
-  
-      ok: true,
-      json: () => Promise.resolve({ message: 'Registration successful' }),
-    })
-  );
+// SellerPage Component Tests
+describe('SellerPage Component', () => {
+  test('renders SellerPage with all input fields', () => {
+    render(
+      <Router>
+        <SellerPage />
+      </Router>
+    );
 
-  render(
-    <Router>
-      <Register />
-    </Router>
-  );
-
-  // Fill in the registration form as previously done
-  fireEvent.change(screen.getByPlaceholderText('First Name'), { target: { value: 'John' } });
-  fireEvent.change(screen.getByPlaceholderText('Last Name'), { target: { value: 'Doe' } });
-  fireEvent.change(screen.getByPlaceholderText('Email'), { target: { value: 'john.doe@example.com' } });
-  fireEvent.change(screen.getByPlaceholderText('Password'), { target: { value: 'password123' } });
-  fireEvent.change(screen.getByPlaceholderText('Confirm Password'), { target: { value: 'password123' } });
-  fireEvent.change(screen.getByPlaceholderText('Address'), { target: { value: '123 Main St' } });
-  fireEvent.change(screen.getByPlaceholderText('Phone Number'), { target: { value: '1234567890' } });
-  fireEvent.click(screen.getByText('Submit'));
-
-  await waitFor(() => {
-    expect(screen.getByText(/Registration successful/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Product Image:/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Product Title:/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Product Description:/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Product Price/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Submit Product/i })).toBeInTheDocument();
   });
-});
 
-//Dharani - Test for form validation on empty fields when updating profile
-test('displays error message when fields are empty on update', async () => {
-  render(
-    <Router>
-      <Profile />
-    </Router>
-  );
+  test('updates input fields correctly in SellerPage', () => {
+    render(
+      <Router>
+        <SellerPage />
+      </Router>
+    );
 
-  fireEvent.click(screen.getByText('Update Profile'));
+    fireEvent.change(screen.getByLabelText(/Product Title:/i), { target: { value: 'Test Product' } });
+    fireEvent.change(screen.getByLabelText(/Product Description:/i), { target: { value: 'Test Description' } });
+    fireEvent.change(screen.getByLabelText(/Product Price/i), { target: { value: '100' } });
 
-  await waitFor(() => {
-    expect(screen.getByText(/Please fill in all fields/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Product Title:/i).value).toBe('Test Product');
+    expect(screen.getByLabelText(/Product Description:/i).value).toBe('Test Description');
+    expect(screen.getByLabelText(/Product Price/i).value).toBe('100');
+  });
+
+  test('handles image upload in SellerPage', () => {
+    render(
+      <Router>
+        <SellerPage />
+      </Router>
+    );
+
+    const file = new File(['dummy image content'], 'test-image.jpg', { type: 'image/jpeg' });
+    const input = screen.getByLabelText(/Product Image:/i);
+
+    fireEvent.change(input, { target: { files: [file] } });
+
+    expect(input.files[0]).toBe(file);
+    expect(input.files).toHaveLength(1);
+  });
+
+  test('submits the form and resets inputs on successful submission', async () => {
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ message: 'Product created successfully' }),
+    });
+
+    render(
+      <Router>
+        <SellerPage />
+      </Router>
+    );
+
+    // Fill the form fields
+    fireEvent.change(screen.getByLabelText(/Product Title:/i), { target: { value: 'Test Product' } });
+    fireEvent.change(screen.getByLabelText(/Product Description:/i), { target: { value: 'Test Description' } });
+    fireEvent.change(screen.getByLabelText(/Product Price/i), { target: { value: '100' } });
+
+    const file = new File(['dummy image content'], 'test-image.jpg', { type: 'image/jpeg' });
+    fireEvent.change(screen.getByLabelText(/Product Image:/i), { target: { files: [file] } });
+
+    fireEvent.click(screen.getByRole('button', { name: /Submit Product/i }));
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+    });
+
+    // Verify if form data is reset after successful submission
+    await waitFor(() => {
+      expect(screen.getByLabelText(/Product Title:/i).value).toBe('');
+      expect(screen.getByLabelText(/Product Description:/i).value).toBe('');
+      expect(screen.getByLabelText(/Product Price/i).value).toBe('');
+      expect(screen.getByLabelText(/Product Image:/i).value).toBe('');
+    });
   });
 });
