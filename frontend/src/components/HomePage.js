@@ -18,11 +18,9 @@ const HomePage = () => {
             'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
           },
         });
-        console.log("Response status:", response.status); // Check if the response status is 200
-  
+
         if (response.ok) {
           const data = await response.json();
-          console.log("Fetched location data:", data); // Log the fetched data
           if (data.location) {
             setLocation(data.location.city || "Default City");
             setRadius(data.location.radius || "1 mile");
@@ -34,18 +32,15 @@ const HomePage = () => {
         console.error("Error fetching location:", error.message);
       }
     };
-  
-    fetchLocation();
-  }, []); // Empty dependency array ensures this runs only once when the component mounts
-  
-  
 
+    fetchLocation();
+  }, []); // Run once on component mount
+  
   const handleLogout = () => {
     localStorage.removeItem('authToken');
     localStorage.removeItem('locationData'); // Clear cached location data
     navigate('/login');
   };
-  
 
   // Toggle dropdown visibility
   const toggleDropdown = () => {
@@ -68,14 +63,10 @@ const HomePage = () => {
         },
         body: JSON.stringify({ city: location, radius }),
       });
-  
+
       if (response.ok) {
         const data = await response.json();
-        console.log('Location updated:', data);
-  
-        // Update localStorage with the new location
         localStorage.setItem('locationData', JSON.stringify(data.location));
-  
         toggleLocationModal();
       } else {
         console.error('Failed to update location');
@@ -84,9 +75,8 @@ const HomePage = () => {
       console.error('Error updating location:', error.message);
     }
   };
-  
-  
-  // Images with descriptions and prices
+
+  // Sample product data with images, descriptions, and prices
   const images = [
     { src: "https://th.bing.com/th/id/OIP.qwy2jAdkv5p4kmRI5b02fwHaHa?w=179&h=180&c=7&r=0&o=5&dpr=1.3&pid=1.7", id: 1, description: "Kitchen Cabinets", price: 50 },
     { src: "https://www.lowergear.com/img/cms/resizedIMG_20221211_132326907.jpg", id: 2, description: "Kerosene Heater", price: 70 },
@@ -99,21 +89,19 @@ const HomePage = () => {
     { src: "https://th.bing.com/th/id/OIP.rpTu4bid4-txJrZStWLbZAHaHa?w=187&h=187&c=7&r=0&o=5&dpr=1.3&pid=1.7", id: 9, description: "Computer", price: 80 },
   ];
 
-  // Handle add to cart with backend API call
+  // Add to cart function with backend API call
   const handleAddToCart = async (productId) => {
     try {
       const response = await fetch('http://localhost:5001/user/cart', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
         },
         body: JSON.stringify({ productId })
       });
 
       if (response.ok) {
-        const data = await response.json();
-        console.log('Item added to cart:', data);
         setCartCount(cartCount + 1);
       } else {
         console.error('Failed to add item to cart');
