@@ -590,4 +590,78 @@ describe('PaymentMethodSettings Component', () => {
       expect(screen.getByText('Error updating payment method. Please try again.')).toBeInTheDocument();
     });
   });
+
+  //Dharani - checks if the Worthbar slider and related elements render correctly.
+describe('Worthbar Component', () => {
+  it('renders the Worthbar slider', () => {
+    render(<ProductDetails />);
+    const worthSlider = screen.getByLabelText(/Worthiness:/i);
+    expect(worthSlider).toBeInTheDocument();
+  });
+
+  it('renders the default worthiness value', () => {
+    render(<ProductDetails />);
+    const worthinessLabel = screen.getByText(/Worthiness: 50%/i); // Assuming default value is 50%
+    expect(worthinessLabel).toBeInTheDocument();
+  });
+});
+//Dharani - checks if the worthiness value updates when the slider is moved.
+
+describe('Worthbar Component', () => {
+  it('updates the worthiness level when slider is moved', () => {
+    render(<ProductDetails />);
+    const worthSlider = screen.getByLabelText(/Worthiness:/i);
+
+    // Change the slider value to 80
+    fireEvent.change(worthSlider, { target: { value: 80 } });
+    const worthinessLabel = screen.getByText(/Worthiness: 80%/i);
+
+    expect(worthinessLabel).toBeInTheDocument();
+  });
+});
+
+describe('Worthbar Component', () => {
+  it('updates the worthiness level when slider is moved', () => {
+    render(<ProductDetails />);
+    const worthSlider = screen.getByLabelText(/Worthiness:/i);
+
+    // Change the slider value to 80
+    fireEvent.change(worthSlider, { target: { value: 80 } });
+    const worthinessLabel = screen.getByText(/Worthiness: 80%/i);
+
+    expect(worthinessLabel).toBeInTheDocument();
+  });
+});
+
+//Dharani - test to ensure that the worthiness level cannot exceed the specified boundaries (e.g., 0-100).
+
+describe('Worthbar Component', () => {
+  it('should not allow worthiness level outside of 0-100', () => {
+    render(<ProductDetails />);
+    const worthSlider = screen.getByLabelText(/Worthiness:/i);
+
+    // Attempt to set an invalid worthiness level
+    fireEvent.change(worthSlider, { target: { value: 120 } });
+    expect(worthSlider.value).toBe("100"); // Expect max boundary
+
+    fireEvent.change(worthSlider, { target: { value: -10 } });
+    expect(worthSlider.value).toBe("0"); // Expect min boundary
+  });
+});
+
+describe('Worthbar Component', () => {
+  it('should not allow worthiness level outside of 0-100', () => {
+    render(<ProductDetails />);
+    const worthSlider = screen.getByLabelText(/Worthiness:/i);
+
+    // Attempt to set an invalid worthiness level
+    fireEvent.change(worthSlider, { target: { value: 120 } });
+    expect(worthSlider.value).toBe("100"); // Expect max boundary
+
+    fireEvent.change(worthSlider, { target: { value: -10 } });
+    expect(worthSlider.value).toBe("0"); // Expect min boundary
+  });
+});
+
+
 });
