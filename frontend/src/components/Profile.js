@@ -1,8 +1,6 @@
-// Profile.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Profile.css';
-
 
 const Profile = () => {
   const [user, setUser] = useState({
@@ -18,19 +16,16 @@ const Profile = () => {
   const [success, setSuccess] = useState('');
   const navigate = useNavigate();
 
-
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const token = localStorage.getItem('token');
-const response = await fetch('http://localhost:5001/user', {
-  method: 'GET',
-  headers: {
-    'Authorization': `Bearer ${token}`,
-  },
-});
-
-
+        const token = localStorage.getItem('authToken');
+        const response = await fetch('http://localhost:5001/user', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
 
         if (!response.ok) throw new Error('Failed to fetch user data');
         const data = await response.json();
@@ -42,10 +37,8 @@ const response = await fetch('http://localhost:5001/user', {
       }
     };
 
-
     fetchUserData();
   }, []);
-
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -57,12 +50,10 @@ const response = await fetch('http://localhost:5001/user', {
     }
   };
 
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setUser({ ...user, [name]: value });
   };
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -73,9 +64,8 @@ const response = await fetch('http://localhost:5001/user', {
     formData.append('phone', user.phone);
     if (image) formData.append('image', image);
 
-
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       const response = await fetch('http://localhost:5001/user', {
         method: 'PUT',
         headers: {
@@ -84,8 +74,9 @@ const response = await fetch('http://localhost:5001/user', {
         body: formData,
       });
 
-
       if (!response.ok) throw new Error('Profile update failed');
+      const updatedUser = await response.json();
+      setUser(updatedUser);
       setSuccess('Profile updated successfully!');
     } catch (err) {
       console.error('Error updating profile:', err);
@@ -93,6 +84,11 @@ const response = await fetch('http://localhost:5001/user', {
     }
   };
 
+  // Handle logout and navigate to the landing page
+  const handleLogout = () => {
+    localStorage.removeItem('authToken'); // Clear token
+    navigate('/'); // Redirect to the landing page
+  };
 
   return (
     <div className="profile-container">
@@ -107,11 +103,15 @@ const response = await fetch('http://localhost:5001/user', {
         <input type="tel" name="phone" value={user.phone} onChange={handleChange} placeholder="Phone" required />
         <input type="file" accept="image/*" onChange={handleImageChange} />
         <button type="submit">Update Profile</button>
+        <button type="button" onClick={() => navigate('/home')}>Back</button>
       </form>
-      <button onClick={() => navigate('/')}>Back to Home</button>
+
+      {/* Only "Logout" button */}
+      <div className="profile-actions">
+        <button className="action-button" onClick={handleLogout}>Logout</button>
+      </div>
     </div>
   );
 };
-
 
 export default Profile;

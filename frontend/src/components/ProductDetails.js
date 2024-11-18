@@ -33,6 +33,7 @@ const ProductDetails = () => {
     fetchProduct();
   }, [id]);
 
+
   const handleSubmit = async (e) => {
     e.preventDefault(); // Prevent default form submission
 
@@ -70,7 +71,7 @@ const ProductDetails = () => {
 
   return (
     <div className="product-details">
-      <img src={`http://localhost:5001${product.image_url}`} alt={product.title || "Product"} className="product-image" />
+      <img src={`http://localhost:5001/${product.imagePath}`} alt={product.title || "Product"} className="product-image" />
       <form className="product-info" onSubmit={handleSubmit}>
         <textarea
           value={description}

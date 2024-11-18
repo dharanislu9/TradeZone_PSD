@@ -1,5 +1,5 @@
 // backend/models/product.js
-const mongoose = require('mongoose');
+import  mongoose from 'mongoose';
 
 const productSchema = new mongoose.Schema({
   title: {type: String, required: true},
@@ -9,5 +9,5 @@ const productSchema = new mongoose.Schema({
   image_url: { type: String } // New field to store the image URL or path
 });
 
-const ProductModel = mongoose.model('Product', productSchema);
-module.exports = ProductModel;
+const ProductModel = mongoose.model('Products', productSchema);
+export default ProductModel;

@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './SellerPage.css';
 
 const SellerPage = () => {
-  // State to hold the form data
   const [formData, setFormData] = useState({
     image: null,
     title: '',
     description: '',
     price: '',
   });
+  const [successMessage, setSuccessMessage] = useState('');
+  const [loading, setLoading] = useState(false); // Loading state
+  const navigate = useNavigate();
 
-  // Handle input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({
@@ -19,7 +21,6 @@ const SellerPage = () => {
     });
   };
 
-  // Handle image upload
   const handleImageUpload = (e) => {
     setFormData({
       ...formData,
@@ -30,51 +31,68 @@ const SellerPage = () => {
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!formData.image || !formData.title || !formData.description || !formData.price) {
+      alert('Please fill out all fields.');
+      return;
+    }
+    setLoading(true); // Start loading
+    const data = new FormData();
+    data.append('image', formData.image);
+    data.append('title', formData.title); // Fixed the issue here
+    data.append('description', formData.description);
+    data.append('price', formData.price);
 
-    // Create FormData object to send as multipart/form-data
-    const form = new FormData();
-    form.append('image', formData.image); // Add image file to FormData
-    form.append('title', formData.title);
-    form.append('description', formData.description);
-    form.append('price', formData.price);
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      alert('You need to be logged in to submit a product.');
+      setLoading(false);
+      return;
+    }
 
     try {
-      const response = await fetch("http://localhost:5001/api/products", {
-        method: "POST",
-        body: form,
+      const response = await fetch('http://localhost:5001/products', {
+        method: 'POST',
+        body: data,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (response.ok) {
-        const data = await response.json();
-        console.log('Product created successfully:', data);
-        // Optionally reset the form
-        setFormData({
-          image: null,
-          title: '',
-          description: '',
-          price: '',
-        });
+        setSuccessMessage('Product submitted successfully!');
+        setFormData({ image: null, title: '', description: '', price: '' });
+        setTimeout(() => {
+          setSuccessMessage('');
+          navigate('/');
+        }, 2000);
       } else {
-        console.error('Failed to create product');
+        const errorData = await response.json();
+        alert(`Failed to submit product: ${errorData.error}`);
       }
     } catch (error) {
-      console.error('Error:', error);
+      alert('An error occurred while submitting the product. Please try again.');
+    } finally {
+      setLoading(false); // Stop loading
     }
   };
 
   return (
     <div className="seller-page">
       <h2>Sell Your Product</h2>
+      {successMessage && (
+        <div className="success-message">
+          {successMessage}
+        </div>
+      )}
       <form onSubmit={handleSubmit} className="seller-form">
-        {/* Image Upload Field */}
         <div className="form-group">
           <label htmlFor="image">Product Image:</label>
-          <input
-            type="file"
-            id="image"
-            name="image"
-            accept="image/*"
-            onChange={handleImageUpload}
+          <input 
+            type="file" 
+            id="image" 
+            name="image" 
+            accept="image/*" 
+            onChange={handleImageUpload} 
             required
           />
         </div>
@@ -120,9 +138,10 @@ const SellerPage = () => {
             required
           />
         </div>
-
-        {/* Submit Button */}
-        <button type="submit" className="submit-button">Submit Product</button>
+        <button type="submit" className="submit-button" disabled={loading}>
+          {loading ? 'Submitting...' : 'Submit Product'}
+        </button>
+        <button type="button" onClick={() => navigate('/')}>Back</button>
       </form>
     </div>
   );

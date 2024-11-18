@@ -1,20 +1,16 @@
+// Login.js
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import './Login.css';
 
-
-const Login = ({ setIsLoggedIn }) => {  // Accept setIsLoggedIn as a prop
+const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const navigate = useNavigate();
-
 
   const handleLogin = async (e) => {
     e.preventDefault();
-
 
     try {
       const response = await fetch('http://localhost:5001/login', {
@@ -25,67 +21,39 @@ const Login = ({ setIsLoggedIn }) => {  // Accept setIsLoggedIn as a prop
         body: JSON.stringify({ email, password }),
       });
 
-
+      // Parse the response to JSON
       const data = await response.json();
-      console.log("Login response:", data);  // Log the response
 
+      // Log the parsed response data for debugging
+      console.log('Parsed response data:', data);
 
       if (!response.ok) {
+        console.log('Error from server:', data); // Debug log
         setError(data.error || 'Login failed. Please try again.');
         return;
       }
 
+      // Check if the response contains the token and username
+      if (data.token && data.username) {
+        // Store the token and username in localStorage
+        localStorage.setItem('authToken', data.token);
+        localStorage.setItem('username', data.username);
 
-      // Store the token in localStorage
-      localStorage.setItem('token', data.token);
-      console.log("Token stored:", data.token); // Log stored token
+        // Log the stored token for confirmation
+        console.log('Token stored in localStorage:', localStorage.getItem('authToken'));
 
-
-      // Set login state
-      setIsLoggedIn(true); // <-- Update login status here
-
-
-      // Redirect to homepage after successful login
-      console.log("Redirecting to home");
-      navigate('/home'); // <-- Redirecting to the homepage
-    } catch (err) {
-      console.error('Network error:', err);
-      setError('Network error. Please try again later.');
-    }
-  };
-
-
-  const handleForgotPassword = async (e) => {
-    e.preventDefault();
-
-
-    try {
-      const response = await fetch('http://localhost:5001/forgot-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: forgotPasswordEmail }),
-      });
-
-
-      const data = await response.json();
-
-
-      if (!response.ok) {
-        setError(data.error || 'Failed to send reset email. Please try again.');
-        return;
+        // Redirect to the homepage or dashboard after login
+        navigate('/');
+      } else {
+        // Handle unexpected response format
+        setError('Unexpected response from server.');
       }
-
-
-      alert('Password reset email sent! Check your inbox.'); // Notify the user
-      setShowForgotPassword(false); // Close the modal
     } catch (err) {
+      // Handle network or other unexpected errors
       console.error('Network error:', err);
       setError('Network error. Please try again later.');
     }
   };
-
 
   return (
     <div className="login-container">
@@ -110,43 +78,18 @@ const Login = ({ setIsLoggedIn }) => {  // Accept setIsLoggedIn as a prop
             required
           />
         </div>
+        <div className="forgot-password" style={{ textAlign: 'right' }}>
+          <Link to="/forgot-password">Forgot Password?</Link>
+        </div>
         <button type="submit" className="btn">Login</button>
       </form>
-      <div className="remember-forgot">
-        <label>
-          <input type="checkbox" /> Remember Me
-        </label>
-        <a href="#" onClick={() => setShowForgotPassword(true)}>Forgot Password?</a>
-      </div>
       <div className="register-link">
         <p>
-          Don't have an account? <a href="/register">Register</a>
+          Don't have an account? <Link to="/register">Register</Link>
         </p>
       </div>
-
-
-      {/* Modal for Forgot Password */}
-      {showForgotPassword && (
-        <div className="forgot-password-modal">
-          <h3>Forgot Password</h3>
-          <form onSubmit={handleForgotPassword}>
-            <div className="input-box">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                value={forgotPasswordEmail}
-                onChange={(e) => setForgotPasswordEmail(e.target.value)}
-                required
-              />
-            </div>
-            <button type="submit" className="btn">Send Reset Email</button>
-            <button type="button" className="btn" onClick={() => setShowForgotPassword(false)}>Cancel</button>
-          </form>
-        </div>
-      )}
     </div>
   );
 };
-
 
 export default Login;

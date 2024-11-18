@@ -1,6 +1,6 @@
-const express = require("express");
-const multer = require("multer");
-const ProductModel = require("../models/product.js");
+import express from "express";
+import  multer from "multer";
+import  ProductModel from "../models/product.js";
 const router = express.Router();
 
 // Configure multer for file uploads
@@ -19,7 +19,7 @@ const upload = multer({ storage: storage });
 // POST route to create a product with an image
 router.post("/products", upload.single("image"), async (req, res) => {
   try {
-    const { title, description, price } = req.body;
+    const { title, description, price, category } = req.body;
     const imageUrl = req.file ? `/uploads/${req.file.filename}` : null; // Save image path
 
     const newProduct = await ProductModel.create({
@@ -28,8 +28,7 @@ router.post("/products", upload.single("image"), async (req, res) => {
       price,
       image_url: imageUrl, // Save the image path in the product document
       seller_id: 1, // Adjust seller_id as needed, or accept from req.body
-      title: req.body.title || "Sample Product", // Optional title
-      category: req.body.category || "General", // Optional category
+      category:category ??"General", // Optional category
       status: "available"
     });
 
@@ -65,4 +64,4 @@ router.get("/products/:id", async (req, res) => {
 });
 
 
-module.exports = router;
+export default router;

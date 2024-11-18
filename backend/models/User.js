@@ -1,73 +1,73 @@
-const express = require('express');
-const bcrypt = require('bcrypt');
-const User = require('../models/User'); // Adjust the path based on your project structure
-const router = express.Router();
+import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
 
+// Define the Payment Method schema as an embedded document schema
+const paymentMethodSchema = new mongoose.Schema({
+  cardNumber: String,
+  expDate: String,
+  cvv: String,
+  country: String,
+});
 
-// Registration Route
-router.post('/register', async (req, res) => {
-  const { firstname, lastname, email, password } = req.body;
+// Define the Cart Item schema for items added to the cart
+const cartItemSchema = new mongoose.Schema({
+  productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
+  quantity: { type: Number, default: 1 },
+});
 
-
-  try {
-    // Check if the user already exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ error: 'Email is already registered' });
+// Define the User Schema
+const userSchema = new mongoose.Schema({
+  firstName: String,
+  lastName: String,
+  email: { type: String, unique: true },
+  password: String,
+  phone: String,
+  address: String,
+  imagePath: String,
+  theme: { type: String, default: 'light' },
+  locations: [
+    {
+      city: {type: String, required: true},
+      radius:{type: String, required: true},
     }
+  ],
+  paymentMethods: [
+    {
+      cardNumber: String,
+      expDate: String,
+      cvv: String,
+      country: String
+    }
+  ],
+  cart: [
+    {
+      productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
+      quantity: { type: Number, default: 1 }
+    }
+  ]
+});
 
-
-    // Hash the password before saving the user
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-
-    // Create a new user with hashed password
-    const newUser = new User({ firstname, lastname, email, password: hashedPassword });
-
-
-    // Save the user in the database
-    await newUser.save();
-
-
-    // Respond with success
-    res.status(201).json({ message: 'User registered successfully!' });
+// Hash password before saving the user document
+userSchema.pre('save', async function(next) {
+  if (!this.isModified('password')) return next();
+  try {
+    this.password = await bcrypt.hash(this.password, 10);
+    next();
   } catch (error) {
-    console.error('Error registering user:', error);
-    res.status(500).json({ error: 'Internal server error during registration' });
+    next(error);
   }
 });
 
-
-// Login Route
-router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
-
-
+// Method to check if password matches the stored hash
+userSchema.methods.isValidPassword = async function(password) {
   try {
-    const user = await User.findOne({ email });
-
-
-    if (!user) {
-      return res.status(400).json({ error: 'Invalid credentials' });
-    }
-
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ error: 'Invalid credentials' });
-    }
-
-
-    // Optionally, generate a JWT token here if you plan to use authentication tokens
-    // const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: 1h' });
-
-
-    res.status(200).json({ message: 'Login successful!', userId: user._id }); // Include token if using JWT
+    return await bcrypt.compare(password, this.password);
   } catch (error) {
-    console.error('Error logging in:', error);
-    res.status(500).json({ error: 'Internal server error during login' });
+    throw new Error(error);
   }
-});
+};
 
+// Check if the User model already exists to prevent OverwriteModelError
+const User = mongoose.models.User || mongoose.model('User', userSchema);
 
-module.exports = router;
+export default User;
