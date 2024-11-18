@@ -40,7 +40,15 @@ jest.mock('axios');
 
 // Test cases for HomePage component
 
-// Test cases for Login component
+afterEach(() => {
+    global.fetch.mockClear();
+});
+
+jest.mock('axios');
+
+// Test cases for HomePage component
+
+// Login Component Tests
 describe('Login Component', () => {
     test('renders Login form with email and password fields', () => {
         render(
@@ -77,7 +85,7 @@ describe('Login Component', () => {
     });
 });
 
-// Test cases for Register component
+// Register Component Tests
 describe('Register Component', () => {
     test('renders Register form with all fields', () => {
         render(
@@ -108,7 +116,7 @@ describe('Register Component', () => {
     });
 });
 
-// Test cases for Profile component
+// Profile Component Tests
 describe('Profile Component', () => {
     test('renders Profile form with user data fields', async () => {
         await act(async () => {

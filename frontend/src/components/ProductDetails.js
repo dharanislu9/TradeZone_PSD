@@ -1,62 +1,77 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import './ProductDetails.css';
 
-
 const ProductDetails = () => {
   const { id } = useParams();
+  const [product, setProduct] = useState(null); // State to hold fetched product data
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
   const [worth, setWorth] = useState(50);
   const [message, setMessage] = useState('');
 
+  // Fetch the product details when the component mounts
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const response = await fetch(`http://localhost:5001/api/products/${id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setProduct(data);
+          setDescription(data.description);
+          setPrice(data.price);
+          setWorth(data.worth || 50); // Set worth with a default of 50 if it's not provided
+        } else {
+          setMessage("Product not found");
+        }
+      } catch (error) {
+        console.error("Error fetching product:", error);
+        setMessage("Error fetching product");
+      }
+    };
 
-  const productImages = {
-    1: "https://th.bing.com/th/id/OIP.qwy2jAdkv5p4kmRI5b02fwHaHa?w=179&h=180&c=7&r=0&o=5&dpr=1.3&pid=1.7",
-    2: "https://www.lowergear.com/img/cms/resizedIMG_20221211_132326907.jpg",
-    3: "https://i.ebayimg.com/00/s/NzY4WDEwMjQ=/z/eeIAAOSwjatbugiE/$_86.JPG",
-    4: "https://th.bing.com/th/id/OIP.mDbfiLwyexcVa2e0iXz8RgHaFj?rs=1&pid=ImgDetMain",
-  };
+    fetchProduct();
+  }, [id]);
 
 
   const handleSubmit = async (e) => {
     e.preventDefault(); // Prevent default form submission
 
-
     const productData = { description, price, worth };
 
-
     try {
-      const response = await fetch('http://localhost:5001/api/products', {
-        method: 'POST',
+      const response = await fetch(`http://localhost:5001/api/products/${id}`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(productData),
       });
 
-
       if (response.ok) {
         const data = await response.json();
-        setMessage(data.message); // Set success message
-        // Optionally, reset form fields after successful submission
-        setDescription('');
-        setPrice('');
-        setWorth(50);
+        setMessage("Product updated successfully");
       } else {
         const errorData = await response.json();
-        setMessage(errorData.message); // Set error message
+        setMessage(errorData.message || "Failed to update product");
       }
     } catch (error) {
       console.error('Error:', error);
-      setMessage('Failed to save product.');
+      setMessage('Failed to update product');
     }
   };
 
+  if (message === "Product not found") {
+    return <div>{message}</div>;
+  }
+
+  if (!product) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="product-details">
-      <img src={productImages[id]} alt={`Product ${id}`} className="product-image" />
+      <img src={`http://localhost:5001/${product.imagePath}`} alt={product.title || "Product"} className="product-image" />
       <form className="product-info" onSubmit={handleSubmit}>
         <textarea
           value={description}
@@ -83,12 +98,11 @@ const ProductDetails = () => {
             onChange={(e) => setWorth(e.target.value)}
           />
         </div>
-        <button type="submit" className="submit-button">Save Product</button>
+        <button type="submit" className="submit-button">Update Product</button>
       </form>
       {message && <p className="response-message">{message}</p>}
     </div>
   );
 };
-
 
 export default ProductDetails;

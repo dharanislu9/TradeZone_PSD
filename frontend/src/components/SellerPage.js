@@ -5,6 +5,7 @@ import './SellerPage.css';
 const SellerPage = () => {
   const [formData, setFormData] = useState({
     image: null,
+    title: '',
     description: '',
     price: '',
   });
@@ -27,15 +28,17 @@ const SellerPage = () => {
     });
   };
 
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.image || !formData.description || !formData.price) {
+    if (!formData.image || !formData.title || !formData.description || !formData.price) {
       alert('Please fill out all fields.');
       return;
     }
     setLoading(true); // Start loading
     const data = new FormData();
     data.append('image', formData.image);
+    data.append('title', formData.title); // Fixed the issue here
     data.append('description', formData.description);
     data.append('price', formData.price);
 
@@ -57,7 +60,7 @@ const SellerPage = () => {
 
       if (response.ok) {
         setSuccessMessage('Product submitted successfully!');
-        setFormData({ image: null, description: '', price: '' });
+        setFormData({ image: null, title: '', description: '', price: '' });
         setTimeout(() => {
           setSuccessMessage('');
           navigate('/');
@@ -93,6 +96,22 @@ const SellerPage = () => {
             required
           />
         </div>
+
+        {/* Title Field */}
+        <div className="form-group">
+          <label htmlFor="title">Product Title:</label>
+          <input
+            type="text"
+            id="title"
+            name="title"
+            value={formData.title}
+            onChange={handleInputChange}
+            placeholder="Enter the product title"
+            required
+          />
+        </div>
+
+        {/* Description Field */}
         <div className="form-group">
           <label htmlFor="description">Product Description:</label>
           <textarea
@@ -104,6 +123,8 @@ const SellerPage = () => {
             required
           />
         </div>
+
+        {/* Price Field */}
         <div className="form-group">
           <label htmlFor="price">Product Price ($):</label>
           <input

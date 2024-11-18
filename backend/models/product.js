@@ -1,11 +1,13 @@
-import mongoose from 'mongoose';
+// backend/models/product.js
+import  mongoose from 'mongoose';
 
 const productSchema = new mongoose.Schema({
-  description: String,
-  price: Number,
-  imagePath: String,
-  sellerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  title: {type: String, required: true},
+  description: { type: String, required: true },
+  price: { type: Number, required: true },
+  worth: { type: Number, default: 50 },
+  image_url: { type: String } // New field to store the image URL or path
 });
 
-// Check if the Product model already exists before defining it
-export default mongoose.models.Product || mongoose.model('Product', productSchema);
+const ProductModel = mongoose.model('Products', productSchema);
+export default ProductModel;

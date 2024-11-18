@@ -9,6 +9,7 @@ const HomePage = () => {
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   const [location, setLocation] = useState("St. Louis, Missouri");
   const [radius, setRadius] = useState("1 mile");
+  const [searchQuery, setSearchQuery] = useState(""); // State to hold the search query
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -62,6 +63,7 @@ const HomePage = () => {
     navigate('/login');
   };
 
+  // Toggle dropdown visibility
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
@@ -116,13 +118,16 @@ const HomePage = () => {
       console.error('Error adding to cart:', error.message);
     }
   };
-
+ // Filter products based on search query
+ const filteredProducts = products.filter(product => 
+  product.title && product.title.toLowerCase().includes(searchQuery.toLowerCase())
+);
   return (
     <div className="home-wrapper">
       <header>
         <div className="header-container">
           <div className="logo-container">
-            <h1 className="logo-text">TradeZone</h1>
+            <Link to="/"><h1 className="logo-text">TradeZone</h1></Link>
           </div>
           <div className="header-container-right">
             <div className="cart-container">
@@ -131,11 +136,29 @@ const HomePage = () => {
                 {cartCount > 0 && <span className="cart-count">{cartCount}</span>}
               </Link>
             </div>
-            <div className="nav-buttons">
-              <Link to="/profile" className="cart-button" onClick={toggleDropdown}>
-                Profile
-              </Link>
-            </div>
+          </div>
+            {/* Search Bar */}
+            <div className="search-bar-container">
+            <input
+              type="text"
+              placeholder="Search for a product..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="search-bar"
+            />
+          </div>
+
+          {/* Right-side Buttons Container */}
+          <div className="nav-buttons">
+            <Link to="/login" className="button login-btn">Login</Link>
+            <button className="button" style={{marginTop: "0px"}} onClick={toggleDropdown}>Profile</button>
+
+            {isDropdownOpen && (
+              <div className="dropdown-menu">
+                <Link to="/profile" className="dropdown-item">My Details</Link>
+                <button className="dropdown-item" onClick={handleLogout}>Logout</button>
+              </div>
+            )}
           </div>
         </div>
       </header>
@@ -149,14 +172,19 @@ const HomePage = () => {
           </div>
         </div>
 
+
+        {/* Right block for image scrolling */}
         <div className="right-block">
+          
+
+          {/* Product Scrolling Section */}
           <div className="image-scroll">
             {products.map((product) => (
               <div key={product._id} className="image-container">
                 <Link to={`/product/${product._id}`}>
                   <img src={`http://localhost:5001/${product.imagePath}`} alt={product.description} />
                 </Link>
-                <h3>{product.description}</h3>
+                <h3>{product.title}</h3>
                 <p>Price: ${product.price}</p>
                 <button
                   className="add-to-cart-button"
@@ -200,6 +228,13 @@ const HomePage = () => {
           </div>
         </div>
       )}
+
+{filteredProducts.length ? filteredProducts.map((product) => (
+              <Link key={product._id} to={`/product/${product._id}`}>
+                <img src={`http://localhost:5001${product.image_url || product.imagePath}`} alt={product.title || "Product Image"} />
+                <p>{product.title}</p>
+              </Link>
+            )) : "No products available"}
     </div>
   );
 
