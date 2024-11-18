@@ -10,6 +10,7 @@ import nodemailer from 'nodemailer';
 
 
 import productRoutes from "./routes/product.js"
+import userRoutes from "./routes/user.js"
 import ProductModel from './models/product.js';
 import { title } from 'process';
 
@@ -179,38 +180,38 @@ app.put('/user/change-password', verifyToken, async (req, res) => {
 });
 
 // Forgot Password Route
-app.post('/forgot-password', async (req, res) => {
-  const { email } = req.body;
+// app.post('/forgot-password', async (req, res) => {
+//   const { email } = req.body;
 
-  try {
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
+//   try {
+//     const user = await User.findOne({ email });
+//     if (!user) {
+//       return res.status(404).json({ error: 'User not found' });
+//     }
 
-    const transporter = nodemailer.createTransport({
-      service: 'Gmail',
-      auth: {
-        user: process.env.EMAIL,
-        pass: process.env.EMAIL_PASSWORD,
-      },
-    });
+//     const transporter = nodemailer.createTransport({
+//       service: 'Gmail',
+//       auth: {
+//         user: process.env.EMAIL,
+//         pass: process.env.EMAIL_PASSWORD,
+//       },
+//     });
 
-    const mailOptions = {
-      from: process.env.EMAIL,
-      to: email,
-      subject: 'Password Reset Request',
-      text: `Please click the link below to reset your password:
-        http://localhost:3000/reset-password/${user._id}`,
-    };
+//     const mailOptions = {
+//       from: process.env.EMAIL,
+//       to: email,
+//       subject: 'Password Reset Request',
+//       text: `Please click the link below to reset your password:
+//         http://localhost:3000/reset-password/${user._id}`,
+//     };
 
-    await transporter.sendMail(mailOptions);
-    res.status(200).json({ message: 'Password reset instructions have been sent to your email.' });
-  } catch (error) {
-    console.error('Error in forgot-password:', error.message);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+//     await transporter.sendMail(mailOptions);
+//     res.status(200).json({ message: 'Password reset instructions have been sent to your email.' });
+//   } catch (error) {
+//     console.error('Error in forgot-password:', error.message);
+//     res.status(500).json({ error: 'Internal server error' });
+//   }
+// });
 
 // GET user profile route
 app.get('/user', verifyToken, async (req, res) => {
@@ -529,6 +530,7 @@ app.put('/user', verifyToken, async (req, res) => {
 });
 
 app.use("/api", productRoutes)
+app.use("/api/users", userRoutes)
 app.use("/uploads", express.static("uploads"));
 
 
