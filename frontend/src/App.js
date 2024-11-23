@@ -10,6 +10,8 @@ import LandingPage from './components/LandingPage';
 import Profile from './components/Profile';
 import SettingsPage from './components/Settings/SettingsPage';
 import LocationPage from './components/LocationPage';
+import CartPage from './components/CartPage';
+import BuyNowPage from './components/BuyNowPage';
 
 const isAuthenticated = () => {
   const token = localStorage.getItem('authToken');
@@ -43,13 +45,11 @@ const App = () => {
     localStorage.removeItem('authToken'); // Ensure this key matches the token storage
   };
 
-  // Handler for updating theme
   const handleThemeChange = (newTheme) => {
     setTheme(newTheme);
     localStorage.setItem('theme', newTheme);
   };
 
-  // Retrieve the stored theme on initial load
   useEffect(() => {
     const storedTheme = localStorage.getItem('theme');
     if (storedTheme) setTheme(storedTheme);
@@ -81,11 +81,20 @@ const App = () => {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/cart"
+          element={
+            <ProtectedRoute>
+              <CartPage /> {/* Cart page protected by authentication */}
+            </ProtectedRoute>
+          }
+        />
 
         {/* Public Routes */}
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/seller-page" element={<SellerPage />} />
         <Route path="/location" element={<LocationPage />} />
+        <Route path="/buy-now/:productId" element={<BuyNowPage />} />
       </Routes>
     </Router>
   );

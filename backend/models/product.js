@@ -1,6 +1,4 @@
 import mongoose from 'mongoose';
-const mongoose = require('mongoose');
-
 
 const productSchema = new mongoose.Schema({
   description: String,
@@ -11,4 +9,3 @@ const productSchema = new mongoose.Schema({
 
 // Check if the Product model already exists before defining it
 export default mongoose.models.Product || mongoose.model('Product', productSchema);
-

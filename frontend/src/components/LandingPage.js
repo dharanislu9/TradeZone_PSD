@@ -7,31 +7,24 @@ const LandingPage = () => {
   const [username, setUsername] = useState('');
   const navigate = useNavigate();
 
-  // Fetch the username from localStorage on component mount
   useEffect(() => {
     const storedUsername = localStorage.getItem('username');
-    console.log("Stored username:", storedUsername); // Debug log
     if (storedUsername) {
       setUsername(storedUsername);
     }
   }, []);
 
-  // Toggle dropdown visibility
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
 
-  // Handle logout logic
   const handleLogout = () => {
-    console.log("Logging out..."); // Debug log
-    localStorage.removeItem('authToken'); // Ensure correct key is cleared
+    localStorage.removeItem('authToken');
     localStorage.removeItem('username');
-    navigate('/'); // Redirect to the landing page after logout
+    navigate('/');
   };
 
-  // Debugging: Ensure that "Shop Now" button links correctly
   const handleShopNowClick = () => {
-    console.log("Navigating to /home"); // Debug log for button click
     navigate('/home');
   };
 
@@ -47,15 +40,12 @@ const LandingPage = () => {
           </div>
         </div>
 
-        <div className="navbar-center">
-          <input type="text" placeholder="Search for product..." className="search-bar" />
-        </div>
+        
 
         <div className="navbar-right">
-          <Link to="/seller-page" className="become-seller">Become Seller</Link>
           {username ? (
             <div className="dropdown">
-              <button className="dropdown-toggle" onClick={toggleDropdown}>
+              <button className="common-button" onClick={toggleDropdown}>
                 {username}
               </button>
               {isDropdownOpen && (
@@ -65,7 +55,7 @@ const LandingPage = () => {
               )}
             </div>
           ) : (
-            <Link to="/login" className="login-btn">Login</Link>
+            <Link to="/login" className="common-button">Login</Link>
           )}
         </div>
       </nav>
@@ -76,8 +66,10 @@ const LandingPage = () => {
           <p>
             TradeZone is a secondhand goods marketplace designed to facilitate the buying, selling, and trading of pre-owned electronics. Our app also features trade-in facilities where two sellers can exchange products, and collaborates with third-party repair shops. Our platform promotes sustainability by extending the life of products and providing users with an affordable alternative to new items.
           </p>
-          {/* Button to navigate to /home */}
-          <button className="shop-now" onClick={handleShopNowClick}>Shop Now</button>
+          <div className="button-container">
+            <button className="common-button" onClick={() => navigate('/seller-page')}>Sell Now</button>
+            <button className="common-button" onClick={handleShopNowClick}>Shop Now</button>
+          </div>
         </div>
       </section>
     </div>

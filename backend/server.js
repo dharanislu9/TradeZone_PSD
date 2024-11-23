@@ -1,4 +1,3 @@
-// Import necessary modules
 import express from 'express';
 import mongoose from 'mongoose';
 import multer from 'multer';
@@ -21,7 +20,7 @@ mongoose.connect(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true 
   .then(() => console.log('MongoDB connected successfully'))
   .catch(error => console.error('MongoDB connection error:', error));
 
-// User Schema with location
+// Schemas
 const userSchema = new mongoose.Schema({
   firstName: String,
   lastName: String,
@@ -31,31 +30,13 @@ const userSchema = new mongoose.Schema({
   address: String,
   imagePath: String,
   theme: { type: String, default: 'light' },
-  locations: [
-    {
-      city: {type: String, required: true},
-      radius:{type: String, required: true},
-    }
-  ],
-  paymentMethods: [
-    {
-      cardNumber: String,
-      expDate: String,
-      cvv: String,
-      country: String
-    }
-  ],
-  cart: [
-    {
-      productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
-      quantity: { type: Number, default: 1 }
-    }
-  ]
+  locations: [{ city: String, radius: String }],
+  paymentMethods: [{ cardNumber: String, expDate: String, cvv: String, country: String }],
+  cart: [{ productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' }, quantity: { type: Number, default: 1 } }]
 });
 
 const User = mongoose.model('User', userSchema);
 
-// Product Schema
 const productSchema = new mongoose.Schema({
   description: String,
   price: Number,
@@ -65,7 +46,7 @@ const productSchema = new mongoose.Schema({
 
 const Product = mongoose.model('Product', productSchema);
 
-// Middleware for verifying JWT tokens with enhanced error handling
+// Middleware for verifying JWT tokens
 const verifyToken = (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -73,17 +54,13 @@ const verifyToken = (req, res, next) => {
   }
 
   const token = authHeader.split(' ')[1];
-  if (!token) {
-    return res.status(401).json({ error: 'Token missing' });
-  }
-
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
     req.userId = decoded.userId;
     next();
   } catch (error) {
     console.error('JWT verification error:', error.message);
-    return res.status(401).json({ error: 'Invalid or malformed token' });
+    res.status(401).json({ error: 'Invalid or malformed token' });
   }
 };
 
@@ -345,13 +322,16 @@ app.post('/user/cart', verifyToken, async (req, res) => {
     const product = await Product.findById(productId);
     if (!product) return res.status(404).json({ error: 'Product not found' });
 
-    const user = await User.findByIdAndUpdate(
-      req.userId,
-      { $push: { cart: { productId } } },
-      { new: true }
-    );
+    const user = await User.findById(req.userId);
+    const existingCartItem = user.cart.find(item => item.productId.equals(productId));
 
-    if (!user) return res.status(404).json({ error: 'User not found' });
+    if (existingCartItem) {
+      existingCartItem.quantity += 1;
+    } else {
+      user.cart.push({ productId });
+    }
+    await user.save();
+    
     res.status(200).json({ message: 'Product added to cart', cart: user.cart });
   } catch (error) {
     console.error('Error adding to cart:', error.message);
@@ -376,20 +356,21 @@ app.delete('/user/cart/:productId', verifyToken, async (req, res) => {
   const { productId } = req.params;
 
   try {
-    const user = await User.findByIdAndUpdate(
-      req.userId,
-      { $pull: { cart: { productId } } },
-      { new: true }
-    );
-
+    const user = await User.findById(req.userId);
     if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const itemIndex = user.cart.findIndex(item => item.productId.toString() === productId);
+    if (itemIndex === -1) return res.status(404).json({ error: 'Item not found in cart' });
+
+    user.cart.splice(itemIndex, 1); // Remove the item from cart
+    await user.save(); // Save updated user cart
+
     res.status(200).json({ message: 'Product removed from cart', cart: user.cart });
   } catch (error) {
     console.error('Error removing from cart:', error.message);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-
 // Product Submission Route
 app.post('/products', verifyToken, upload.single('image'), async (req, res) => {
   const { description, price } = req.body;
@@ -412,6 +393,15 @@ app.post('/products', verifyToken, upload.single('image'), async (req, res) => {
   } catch (error) {
     console.error('Error adding product:', error.message);
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get('/products', async (req, res) => {
+  try {
+    const products = await Product.find();
+    res.status(200).json(products);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch products' });
   }
 });
 
@@ -531,7 +521,67 @@ app.put('/user', verifyToken, async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+app.post('/buy-now', verifyToken, async (req, res) => {
+  const { productId, shippingAddress, paymentMethod, quantity } = req.body;
 
+  // Validate request data
+  if (!productId || !shippingAddress || !paymentMethod || !quantity) {
+    return res.status(400).json({ error: 'All fields are required' });
+  }
+
+  try {
+    // Check if the product exists
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+
+    // Create an order object
+    const order = {
+      productId,
+      userId: req.userId, // From JWT
+      shippingAddress,
+      paymentMethod,
+      quantity,
+      totalPrice: product.price * quantity,
+      orderDate: new Date(),
+    };
+
+    // Save the order (example: you can create an "Order" model for storing orders)
+    // For simplicity, this example directly sends the response
+    // You can implement an `Order` model if needed.
+
+    res.status(201).json({
+      message: 'Order placed successfully',
+      order,
+    });
+  } catch (error) {
+    console.error('Error processing order:', error.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+// Fetch a specific product by ID
+app.get('/products/:productId', async (req, res) => {
+  const { productId } = req.params;
+
+  // Validate if productId is a valid ObjectId
+  if (!mongoose.Types.ObjectId.isValid(productId)) {
+    return res.status(400).json({ error: 'Invalid product ID format' });
+  }
+
+  try {
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+    res.status(200).json(product);
+  } catch (error) {
+    console.error('Error fetching product:', error.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 
 if (process.env.NODE_ENV !== 'test') {
