@@ -39,42 +39,6 @@ afterEach(() => {
 jest.mock('axios');
 
 // Test cases for HomePage component
-describe('HomePage Component', () => {
-    test('renders HomePage with logo and navigation links', () => {
-        render(
-            <Router>
-                <HomePage />
-            </Router>
-        );
-
-        expect(screen.getByText('TradeZone')).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: 'Profile' })).toBeInTheDocument();
-    });
-
-    test('toggles profile dropdown menu', () => {
-        render(
-            <Router>
-                <HomePage />
-            </Router>
-        );
-
-        fireEvent.click(screen.getByRole('button', { name: 'Profile' }));
-        expect(screen.getByText('My Details')).toBeInTheDocument();
-        expect(screen.getByText('Logout')).toBeInTheDocument();
-    });
-
-    test('logs out and navigates to login page', () => {
-        render(
-            <Router>
-                <HomePage />
-            </Router>
-        );
-
-        fireEvent.click(screen.getByRole('button', { name: 'Profile' }));
-        fireEvent.click(screen.getByText('Logout'));
-        expect(localStorage.getItem('token')).toBeNull();
-    });
-});
 
 // Test cases for Login component
 describe('Login Component', () => {
@@ -589,5 +553,76 @@ describe('PaymentMethodSettings Component', () => {
     await waitFor(() => {
       expect(screen.getByText('Error updating payment method. Please try again.')).toBeInTheDocument();
     });
+    
+  });
+
+  describe('HomePage Component', () => {
+    beforeEach(() => {
+      // Mock localStorage
+      Storage.prototype.getItem = jest.fn((key) => {
+        if (key === 'authToken') return 'mockAuthToken';
+        return null;
+      });
+    });
+  
+    test('renders the header with TradeZone logo and navigation links', () => {
+      render(
+        <Router>
+          <HomePage />
+        </Router>
+      );
+  
+      expect(screen.getByText(/TradeZone/i)).toBeInTheDocument();
+      expect(screen.getByText(/Cart/i)).toBeInTheDocument();
+      expect(screen.getByText(/Profile/i)).toBeInTheDocument();
+    });
+  
+    test('displays the products fetched from the backend', async () => {
+      const mockProducts = [
+        { _id: '1', description: 'Product 1', price: 100, imagePath: 'path/to/image1.jpg' },
+        { _id: '2', description: 'Product 2', price: 200, imagePath: 'path/to/image2.jpg' },
+      ];
+  
+      global.fetch = jest.fn(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(mockProducts),
+        })
+      );
+  
+      render(
+        <Router>
+          <HomePage />
+        </Router>
+      );
+  
+      const product1 = await screen.findByText(/Product 1/i);
+      const product2 = await screen.findByText(/Product 2/i);
+  
+      expect(product1).toBeInTheDocument();
+      expect(product2).toBeInTheDocument();
+    });
+  
+    
+  
+    test('opens and closes the location modal', () => {
+      render(
+        <Router>
+          <HomePage />
+        </Router>
+      );
+  
+      const locationButton = screen.getByText(/Location/i);
+      fireEvent.click(locationButton);
+  
+      expect(screen.getByText(/Change Location/i)).toBeInTheDocument();
+  
+      const closeButton = screen.getByText('×');
+      fireEvent.click(closeButton);
+  
+      expect(screen.queryByText(/Change Location/i)).not.toBeInTheDocument();
+    });
+  
+    
   });
 });

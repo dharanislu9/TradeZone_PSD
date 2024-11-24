@@ -46,6 +46,18 @@ const productSchema = new mongoose.Schema({
 
 const Product = mongoose.model('Product', productSchema);
 
+const orderSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
+  shippingAddress: { type: String, required: true },
+  paymentMethod: { type: String, required: true },
+  quantity: { type: Number, required: true },
+  totalPrice: { type: Number, required: true },
+  orderDate: { type: Date, default: Date.now },
+});
+
+const Order = mongoose.model('Order', orderSchema);
+
 // Middleware for verifying JWT tokens
 const verifyToken = (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -561,27 +573,88 @@ app.post('/buy-now', verifyToken, async (req, res) => {
   }
 });
 
+app.post('/user/orders', verifyToken, async (req, res) => {
+  const { productId, shippingAddress, paymentMethod, quantity } = req.body;
+
+  console.log("Order details received:", { productId, shippingAddress, paymentMethod, quantity });
+
+  // Validate required fields
+  if (!productId || !shippingAddress || !paymentMethod || !quantity) {
+    console.error("Missing required fields in the order request");
+    return res.status(400).json({ error: 'All fields are required.' });
+  }
+
+  try {
+    // Validate product existence
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      return res.status(400).json({ error: 'Invalid product ID format.' });
+    }
+
+    const product = await Product.findById(productId);
+    if (!product) {
+      console.error("Product not found for ID:", productId);
+      return res.status(404).json({ error: 'Product not found.' });
+    }
+
+    const totalPrice = product.price * quantity;
+
+    // Create and save the order
+    const newOrder = new Order({
+      userId: req.userId, // Extracted from JWT
+      productId,
+      shippingAddress,
+      paymentMethod,
+      quantity,
+      totalPrice,
+    });
+
+    await newOrder.save(); // Save the order to the database
+
+    console.log("Order saved successfully:", newOrder);
+    res.status(201).json({ message: 'Order placed successfully!', order: newOrder });
+  } catch (error) {
+    console.error("Error processing the order:", error.message);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+});
+
 
 // Fetch a specific product by ID
 app.get('/products/:productId', async (req, res) => {
   const { productId } = req.params;
 
-  // Validate if productId is a valid ObjectId
-  if (!mongoose.Types.ObjectId.isValid(productId)) {
-    return res.status(400).json({ error: 'Invalid product ID format' });
-  }
-
+  console.log("Fetching product with ID:", productId); // Debugging
   try {
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      console.error("Invalid product ID format");
+      return res.status(400).json({ error: 'Invalid product ID format.' });
+    }
+
     const product = await Product.findById(productId);
     if (!product) {
-      return res.status(404).json({ error: 'Product not found' });
+      console.error("Product not found for ID:", productId);
+      return res.status(404).json({ error: 'Product not found.' });
     }
+
+    console.log("Product fetched successfully:", product);
     res.status(200).json(product);
   } catch (error) {
-    console.error('Error fetching product:', error.message);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error fetching product:", error.message);
+    res.status(500).json({ error: 'Internal server error.' });
   }
 });
+
+// Fetch all orders for the logged-in user
+app.get('/user/orders', verifyToken, async (req, res) => {
+  try {
+    const orders = await Order.find({ userId: req.userId }).populate('productId', 'description price imagePath');
+    res.status(200).json(orders);
+  } catch (error) {
+    console.error("Error fetching orders:", error.message);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+});
+
 
 
 if (process.env.NODE_ENV !== 'test') {
