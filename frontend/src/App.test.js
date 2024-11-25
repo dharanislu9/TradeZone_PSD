@@ -1,3 +1,4 @@
+//App Test
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter as Router } from 'react-router-dom';
@@ -7,6 +8,7 @@ import Register from './components/Register';
 import Profile from './components/Profile';
 
 // Test cases for HomePage component
+
 describe('HomePage Component', () => {
   test('renders HomePage with logo and navigation links', () => {
     render(
@@ -57,6 +59,7 @@ describe('HomePage Component', () => {
 });
 
 // Test cases for Login component
+
 describe('Login Component', () => {
   test('renders Login form with email and password fields', () => {
     render(
@@ -119,6 +122,7 @@ describe('Login Component', () => {
 });
 
 // Test cases for Register component
+
 describe('Register Component', () => {
   test('renders Register form with all fields', () => {
     render(
@@ -184,6 +188,7 @@ describe('Register Component', () => {
 });
 
 // Test cases for Profile component
+
 describe('Profile Component', () => {
   test('renders Profile form with user data fields', () => {
     render(
@@ -267,6 +272,7 @@ describe('Profile Component', () => {
 });
 
 //dharani - test for displaying a success message after registration
+
 test('displays success message after successful registration', async () => {
   global.fetch = jest.fn(() =>
     Promise.resolve({
@@ -283,6 +289,7 @@ test('displays success message after successful registration', async () => {
   );
 
   // Fill in the registration form as previously done
+
   fireEvent.change(screen.getByPlaceholderText('First Name'), { target: { value: 'John' } });
   fireEvent.change(screen.getByPlaceholderText('Last Name'), { target: { value: 'Doe' } });
   fireEvent.change(screen.getByPlaceholderText('Email'), { target: { value: 'john.doe@example.com' } });
@@ -298,6 +305,7 @@ test('displays success message after successful registration', async () => {
 });
 
 //Dharani - Test for form validation on empty fields when updating profile
+
 test('displays error message when fields are empty on update', async () => {
   render(
     <Router>
