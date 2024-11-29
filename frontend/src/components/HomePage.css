@@ -278,3 +278,21 @@ body, html {
   background: linear-gradient(135deg, #6e8ea2, #4e6b7c);
   box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
 }
+
+.logo-button {
+  text-decoration: none; /* Remove the underline */
+  color: inherit; /* Ensure the text color is consistent */
+}
+
+.logo-text {
+  font-size: 2rem;
+  font-weight: bold;
+  margin: 0;
+  color: #4CAF50; /* Set the color for the logo */
+  cursor: pointer; /* Change the cursor to indicate clickability */
+}
+
+.logo-button:hover .logo-text {
+  color: #3e8e41; /* Optional: Change color on hover */
+  text-decoration: none; /* Ensure no underline appears on hover */
+}

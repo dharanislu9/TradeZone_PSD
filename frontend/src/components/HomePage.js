@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import './HomePage.css';
 
 const HomePage = () => {
-  const [products, setProducts] = useState([]); // State to hold products
+  const [products, setProducts] = useState([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
@@ -12,13 +12,12 @@ const HomePage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Fetch products from the backend
     const fetchProducts = async () => {
       try {
-        const response = await fetch('http://localhost:5001/products'); // Adjust this URL if needed
+        const response = await fetch('http://localhost:5001/products');
         if (response.ok) {
           const data = await response.json();
-          setProducts(data); // Update products state with data from backend
+          setProducts(data);
         } else {
           console.error("Failed to fetch products");
         }
@@ -28,17 +27,17 @@ const HomePage = () => {
     };
 
     fetchProducts();
-  }, []); // Empty dependency array means this runs once when component mounts
+  }, []);
 
   useEffect(() => {
     const fetchLocation = async () => {
       try {
         const response = await fetch('http://localhost:5001/user/location', {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+            Authorization: `Bearer ${localStorage.getItem('authToken')}`,
           },
         });
-        
+
         if (response.ok) {
           const data = await response.json();
           if (data.location) {
@@ -52,7 +51,7 @@ const HomePage = () => {
         console.error("Error fetching location:", error.message);
       }
     };
-  
+
     fetchLocation();
   }, []);
 
@@ -67,7 +66,7 @@ const HomePage = () => {
   };
 
   const toggleLocationModal = () => {
-    setIsLocationModalOpen(prevState => !prevState);
+    setIsLocationModalOpen((prevState) => !prevState);
   };
 
   const handleLocationChange = async () => {
@@ -77,11 +76,11 @@ const HomePage = () => {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ city: location, radius }),
       });
-  
+
       if (response.ok) {
         const data = await response.json();
         localStorage.setItem('locationData', JSON.stringify(data.location));
@@ -100,9 +99,9 @@ const HomePage = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+          Authorization: `Bearer ${localStorage.getItem('authToken')}`,
         },
-        body: JSON.stringify({ productId })
+        body: JSON.stringify({ productId }),
       });
 
       if (response.ok) {
@@ -122,11 +121,13 @@ const HomePage = () => {
       <header>
         <div className="header-container">
           <div className="logo-container">
-            <h1 className="logo-text">TradeZone</h1>
+            <Link to="/" className="logo-button">
+              <h1 className="logo-text">TradeZone</h1>
+            </Link>
           </div>
           <div className="header-container-right">
             <div className="cart-container">
-              <Link to= "/cart" className="cart-button" onClick={() => navigate('/cart')}>
+              <Link to="/cart" className="cart-button">
                 🛒 Cart
                 {cartCount > 0 && <span className="cart-count">{cartCount}</span>}
               </Link>
@@ -143,9 +144,15 @@ const HomePage = () => {
       <div className="main-container">
         <div className="left-block">
           <div className="dropdown">
-            <Link to="/settings" className="sidebar-link">Settings</Link>
-            <Link to="#" onClick={toggleLocationModal} className="sidebar-link">Location</Link>
-            <Link to="/" className="sidebar-link">Back</Link>
+            <Link to="/settings" className="sidebar-link">
+              Settings
+            </Link>
+            <Link to="#" onClick={toggleLocationModal} className="sidebar-link">
+              Location
+            </Link>
+            <Link to="/orders" className="sidebar-link">
+              Orders
+            </Link>
           </div>
         </div>
 
@@ -154,7 +161,10 @@ const HomePage = () => {
             {products.map((product) => (
               <div key={product._id} className="image-container">
                 <Link to={`/product/${product._id}`}>
-                  <img src={`http://localhost:5001/${product.imagePath}`} alt={product.description} />
+                  <img
+                    src={`http://localhost:5001/${product.imagePath}`}
+                    alt={product.description}
+                  />
                 </Link>
                 <h3>{product.description}</h3>
                 <p>Price: ${product.price}</p>
@@ -181,7 +191,9 @@ const HomePage = () => {
           <div className="location-modal">
             <div className="modal-header">
               <h2>Change Location</h2>
-              <button className="close-button" onClick={toggleLocationModal}>×</button>
+              <button className="close-button" onClick={toggleLocationModal}>
+                ×
+              </button>
             </div>
             <div className="modal-content">
               <label>Location</label>
@@ -201,15 +213,15 @@ const HomePage = () => {
               <div className="map-placeholder">
                 <p>Map showing location with a radius of {radius}</p>
               </div>
-              <button className="apply-button" onClick={handleLocationChange}>Apply</button>
+              <button className="apply-button" onClick={handleLocationChange}>
+                Apply
+              </button>
             </div>
           </div>
         </div>
       )}
     </div>
   );
-
-
 };
 
 export default HomePage;
