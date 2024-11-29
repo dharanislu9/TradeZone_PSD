@@ -27,14 +27,17 @@
   },
   "description": "",
   "devDependencies": {
-    "chai": "^5.1.2",
-    "mocha": "^10.8.2",
-    "supertest": "^7.0.0",
     "@babel/cli": "^7.21.0",
     "@babel/core": "^7.21.0",
-    "@babel/preset-env": "^7.21.0"
+    "@babel/preset-env": "^7.21.0",
+    "chai": "^5.1.2",
+    "chai-http": "^5.1.1",
+    "mocha": "^10.8.2",
+    "supertest": "^7.0.0"
   },
   "babel": {
-    "presets": ["@babel/preset-env"]
+    "presets": [
+      "@babel/preset-env"
+    ]
   }
 }

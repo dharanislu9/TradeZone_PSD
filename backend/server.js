@@ -8,6 +8,9 @@ import dotenv from 'dotenv';
 import path from 'path';
 import nodemailer from 'nodemailer';
 
+
+
+
 dotenv.config();
 
 const app = express();
@@ -99,6 +102,11 @@ const upload = multer({ storage: storage, fileFilter: imageFilter });
 app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
 app.use(express.json());
 app.use('/uploads', express.static('uploads'));
+
+// Home route
+app.get('/', (req, res) => {
+  res.status(200).json({ message: 'Welcome to the API Home Page' });
+});
 
 app.post('/register', upload.single('image'), async (req, res) => {
   const { firstName, lastName, email, password, phone, address, location, radius } = req.body;
@@ -356,12 +364,15 @@ app.get('/user/cart', verifyToken, async (req, res) => {
   try {
     const user = await User.findById(req.userId).populate('cart.productId');
     if (!user) return res.status(404).json({ error: 'User not found' });
+
+    console.log('Fetched Cart:', user.cart); // Debug log
     res.status(200).json({ cart: user.cart });
   } catch (error) {
     console.error('Error fetching cart:', error.message);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
 
 // Remove from Cart
 app.delete('/user/cart/:productId', verifyToken, async (req, res) => {
@@ -541,6 +552,11 @@ app.post('/buy-now', verifyToken, async (req, res) => {
     return res.status(400).json({ error: 'All fields are required' });
   }
 
+  // Validate product ID format
+  if (!mongoose.Types.ObjectId.isValid(productId)) {
+    return res.status(400).json({ error: 'Invalid product ID format.' });
+  }
+
   try {
     // Check if the product exists
     const product = await Product.findById(productId);
@@ -560,18 +576,19 @@ app.post('/buy-now', verifyToken, async (req, res) => {
     };
 
     // Save the order (example: you can create an "Order" model for storing orders)
-    // For simplicity, this example directly sends the response
-    // You can implement an `Order` model if needed.
+    const newOrder = new Order(order);
+    await newOrder.save();
 
     res.status(201).json({
       message: 'Order placed successfully',
-      order,
+      order: newOrder,
     });
   } catch (error) {
     console.error('Error processing order:', error.message);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
 
 app.post('/user/orders', verifyToken, async (req, res) => {
   const { productId, shippingAddress, paymentMethod, quantity } = req.body;
