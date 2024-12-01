@@ -8,6 +8,9 @@ import dotenv from 'dotenv';
 import path from 'path';
 import nodemailer from 'nodemailer';
 
+
+
+
 dotenv.config();
 
 const app = express();
@@ -45,6 +48,18 @@ const productSchema = new mongoose.Schema({
 });
 
 const Product = mongoose.model('Product', productSchema);
+
+const orderSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
+  shippingAddress: { type: String, required: true },
+  paymentMethod: { type: String, required: true },
+  quantity: { type: Number, required: true },
+  totalPrice: { type: Number, required: true },
+  orderDate: { type: Date, default: Date.now },
+});
+
+const Order = mongoose.model('Order', orderSchema);
 
 // Middleware for verifying JWT tokens
 const verifyToken = (req, res, next) => {
@@ -87,6 +102,11 @@ const upload = multer({ storage: storage, fileFilter: imageFilter });
 app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
 app.use(express.json());
 app.use('/uploads', express.static('uploads'));
+
+// Home route
+app.get('/', (req, res) => {
+  res.status(200).json({ message: 'Welcome to the API Home Page' });
+});
 
 app.post('/register', upload.single('image'), async (req, res) => {
   const { firstName, lastName, email, password, phone, address, location, radius } = req.body;
@@ -344,12 +364,15 @@ app.get('/user/cart', verifyToken, async (req, res) => {
   try {
     const user = await User.findById(req.userId).populate('cart.productId');
     if (!user) return res.status(404).json({ error: 'User not found' });
+
+    console.log('Fetched Cart:', user.cart); // Debug log
     res.status(200).json({ cart: user.cart });
   } catch (error) {
     console.error('Error fetching cart:', error.message);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
 
 // Remove from Cart
 app.delete('/user/cart/:productId', verifyToken, async (req, res) => {
@@ -519,6 +542,133 @@ app.put('/user', verifyToken, async (req, res) => {
     res.status(200).json(updatedUser);
   } catch (error) {
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+app.post('/buy-now', verifyToken, async (req, res) => {
+  const { productId, shippingAddress, paymentMethod, quantity } = req.body;
+
+  // Validate request data
+  if (!productId || !shippingAddress || !paymentMethod || !quantity) {
+    return res.status(400).json({ error: 'All fields are required' });
+  }
+
+  // Validate product ID format
+  if (!mongoose.Types.ObjectId.isValid(productId)) {
+    return res.status(400).json({ error: 'Invalid product ID format.' });
+  }
+
+  try {
+    // Check if the product exists
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+
+    // Create an order object
+    const order = {
+      productId,
+      userId: req.userId, // From JWT
+      shippingAddress,
+      paymentMethod,
+      quantity,
+      totalPrice: product.price * quantity,
+      orderDate: new Date(),
+    };
+
+    // Save the order (example: you can create an "Order" model for storing orders)
+    const newOrder = new Order(order);
+    await newOrder.save();
+
+    res.status(201).json({
+      message: 'Order placed successfully',
+      order: newOrder,
+    });
+  } catch (error) {
+    console.error('Error processing order:', error.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+app.post('/user/orders', verifyToken, async (req, res) => {
+  const { productId, shippingAddress, paymentMethod, quantity } = req.body;
+
+  console.log("Order details received:", { productId, shippingAddress, paymentMethod, quantity });
+
+  // Validate required fields
+  if (!productId || !shippingAddress || !paymentMethod || !quantity) {
+    console.error("Missing required fields in the order request");
+    return res.status(400).json({ error: 'All fields are required.' });
+  }
+
+  try {
+    // Validate product existence
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      return res.status(400).json({ error: 'Invalid product ID format.' });
+    }
+
+    const product = await Product.findById(productId);
+    if (!product) {
+      console.error("Product not found for ID:", productId);
+      return res.status(404).json({ error: 'Product not found.' });
+    }
+
+    const totalPrice = product.price * quantity;
+
+    // Create and save the order
+    const newOrder = new Order({
+      userId: req.userId, // Extracted from JWT
+      productId,
+      shippingAddress,
+      paymentMethod,
+      quantity,
+      totalPrice,
+    });
+
+    await newOrder.save(); // Save the order to the database
+
+    console.log("Order saved successfully:", newOrder);
+    res.status(201).json({ message: 'Order placed successfully!', order: newOrder });
+  } catch (error) {
+    console.error("Error processing the order:", error.message);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+});
+
+
+// Fetch a specific product by ID
+app.get('/products/:productId', async (req, res) => {
+  const { productId } = req.params;
+
+  console.log("Fetching product with ID:", productId); // Debugging
+  try {
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      console.error("Invalid product ID format");
+      return res.status(400).json({ error: 'Invalid product ID format.' });
+    }
+
+    const product = await Product.findById(productId);
+    if (!product) {
+      console.error("Product not found for ID:", productId);
+      return res.status(404).json({ error: 'Product not found.' });
+    }
+
+    console.log("Product fetched successfully:", product);
+    res.status(200).json(product);
+  } catch (error) {
+    console.error("Error fetching product:", error.message);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+});
+
+// Fetch all orders for the logged-in user
+app.get('/user/orders', verifyToken, async (req, res) => {
+  try {
+    const orders = await Order.find({ userId: req.userId }).populate('productId', 'description price imagePath');
+    res.status(200).json(orders);
+  } catch (error) {
+    console.error("Error fetching orders:", error.message);
+    res.status(500).json({ error: 'Internal server error.' });
   }
 });
 

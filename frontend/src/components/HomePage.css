@@ -278,3 +278,21 @@ body, html {
   background: linear-gradient(135deg, #6e8ea2, #4e6b7c);
   box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
 }
+
+.logo-button {
+  text-decoration: none; 
+  color: inherit; 
+}
+
+.logo-text {
+  font-size: 2rem;
+  font-weight: bold;
+  margin: 0;
+  color: #4CAF50; 
+  cursor: pointer; 
+}
+
+.logo-button:hover .logo-text {
+  color: #3e8e41; 
+  text-decoration: none; 
+}

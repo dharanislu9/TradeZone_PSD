@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 import app from '../server.js';
 import User from '../models/User.js';
 import Product from '../models/product.js';
+import jwt from 'jsonwebtoken';
 
 describe('Server API Endpoints', () => {
   let authToken = '';
@@ -418,8 +419,736 @@ describe('Server API Endpoints', () => {
       expect(res.body.paymentMethods).to.be.an('array').that.is.empty;
     });
 
-  });
+    describe('Orders and Buy Now API', () => {
+      let productId;
+      let testOrder;
+    
+      beforeEach(async () => {
+        // Create a product to use in orders
+        const product = new Product({
+          description: 'Test Product',
+          price: 50,
+          imagePath: 'test-image.jpg',
+          sellerId: testUserId,
+        });
+        await product.save();
+        productId = product._id;
+    
+        // Create an order for fetching tests
+        testOrder = {
+          productId,
+          shippingAddress: '123 Test Street',
+          paymentMethod: 'Credit Card',
+          quantity: 2,
+        };
+      });
+    
+      afterEach(async () => {
+        await Product.deleteMany({});
+        await mongoose.connection.collection('orders').deleteMany({});
+      });
+    
+      // Place a new order
+      it('should place a new order', async () => {
+        const response = await request(app)
+          .post('/user/orders')
+          .set('Authorization', `Bearer ${authToken}`)
+          .send(testOrder);
+    
+        expect(response.status).to.equal(201);
+        expect(response.body.message).to.equal('Order placed successfully!');
+        expect(response.body.order).to.have.property('_id');
+        expect(response.body.order.totalPrice).to.equal(100); // 50 * 2
+      });
+    
+      // Place order with missing fields
+      it('should return an error when required fields are missing', async () => {
+        const response = await request(app)
+          .post('/user/orders')
+          .set('Authorization', `Bearer ${authToken}`)
+          .send({
+            productId,
+            shippingAddress: '123 Test Street',
+            paymentMethod: 'Credit Card',
+          }); // Missing quantity
+    
+        expect(response.status).to.equal(400);
+        expect(response.body.error).to.equal('All fields are required.');
+      });
+    
+      // Place order with an invalid product ID
+      it('should return an error for an invalid product ID', async () => {
+        const response = await request(app)
+          .post('/user/orders')
+          .set('Authorization', `Bearer ${authToken}`)
+          .send({
+            productId: 'invalidId',
+            shippingAddress: '123 Test Street',
+            paymentMethod: 'Credit Card',
+            quantity: 2,
+          });
+    
+        expect(response.status).to.equal(400);
+        expect(response.body.error).to.equal('Invalid product ID format.');
+      });
+    
+      // Fetch all orders for the logged-in user
+      it('should fetch all orders for the logged-in user', async () => {
+        // Place an order first
+        await request(app)
+          .post('/user/orders')
+          .set('Authorization', `Bearer ${authToken}`)
+          .send(testOrder);
+    
+        const response = await request(app)
+          .get('/user/orders')
+          .set('Authorization', `Bearer ${authToken}`);
+    
+        expect(response.status).to.equal(200);
+        expect(response.body).to.be.an('array');
+        expect(response.body.length).to.be.greaterThan(0);
+        expect(response.body[0]).to.have.property('productId');
+      });
+    
+      // Fetch orders without authorization
+      it('should return an error for fetching orders without authorization', async () => {
+        const response = await request(app)
+          .get('/user/orders');
+    
+        expect(response.status).to.equal(401);
+        expect(response.body.error).to.equal('Authorization header missing or malformed');
+      });
+    
+      // Buy Now test case
+      it('should place an order using Buy Now', async () => {
+        const response = await request(app)
+          .post('/buy-now')
+          .set('Authorization', `Bearer ${authToken}`)
+          .send({
+            productId,
+            shippingAddress: '123 Test Street',
+            paymentMethod: 'Credit Card',
+            quantity: 1,
+          });
+    
+        expect(response.status).to.equal(201);
+        expect(response.body.message).to.equal('Order placed successfully');
+        expect(response.body.order).to.have.property('productId');
+        expect(response.body.order.totalPrice).to.equal(50); // 50 * 1
+      });
+    
+      // Buy Now with missing fields
+      it('should return an error for missing fields in Buy Now request', async () => {
+        const response = await request(app)
+          .post('/buy-now')
+          .set('Authorization', `Bearer ${authToken}`)
+          .send({
+            productId,
+            shippingAddress: '123 Test Street',
+            paymentMethod: 'Credit Card',
+          }); // Missing quantity
+    
+        expect(response.status).to.equal(400);
+        expect(response.body.error).to.equal('All fields are required');
+      });
+    
+      // Buy Now with an invalid product ID
+      it('should return an error for an invalid product ID in Buy Now', async () => {
+        const response = await request(app)
+          .post('/buy-now')
+          .set('Authorization', `Bearer ${authToken}`)
+          .send({
+            productId: 'invalidId',
+            shippingAddress: '123 Test Street',
+            paymentMethod: 'Credit Card',
+            quantity: 1,
+          });
+      
+        expect(response.status).to.equal(400);
+        expect(response.body.error).to.equal('Invalid product ID format.');
+      });
 
+      describe('Cart API Endpoints', () => {
+        it('should add a product to the cart', async () => {
+          const res = await request(app)
+            .post('/user/cart')
+            .set('Authorization', `Bearer ${authToken}`)
+            .send({ productId });
+          
+          expect(res.status).to.equal(200);
+          expect(res.body.message).to.equal('Product added to cart');
+          expect(res.body.cart).to.be.an('array').that.has.lengthOf(1);
+          expect(res.body.cart[0].productId).to.equal(String(productId));
+        });
+    
+        
+        
+    
+        it('should remove a product from the cart', async () => {
+          // Add product to the cart first
+          await request(app)
+            .post('/user/cart')
+            .set('Authorization', `Bearer ${authToken}`)
+            .send({ productId });
+    
+          // Remove the product from the cart
+          const res = await request(app)
+            .delete(`/user/cart/${productId}`)
+            .set('Authorization', `Bearer ${authToken}`);
+    
+          expect(res.status).to.equal(200);
+          expect(res.body.message).to.equal('Product removed from cart');
+    
+          // Verify the cart is empty
+          const cartRes = await request(app)
+            .get('/user/cart')
+            .set('Authorization', `Bearer ${authToken}`);
+          
+          expect(cartRes.status).to.equal(200);
+          expect(cartRes.body.cart).to.be.an('array').that.is.empty;
+        });
+    
+        it('should return an error when adding a non-existent product to the cart', async () => {
+          const fakeProductId = new mongoose.Types.ObjectId(); // Generate a random ObjectId
+          const res = await request(app)
+            .post('/user/cart')
+            .set('Authorization', `Bearer ${authToken}`)
+            .send({ productId: fakeProductId });
+    
+          expect(res.status).to.equal(404);
+          expect(res.body.error).to.equal('Product not found');
+        });
+    
+        it('should return an error when removing a product not in the cart', async () => {
+          const fakeProductId = new mongoose.Types.ObjectId(); // Generate a random ObjectId
+          const res = await request(app)
+            .delete(`/user/cart/${fakeProductId}`)
+            .set('Authorization', `Bearer ${authToken}`);
+    
+          expect(res.status).to.equal(404);
+          expect(res.body.error).to.equal('Item not found in cart');
+        });
+
+        describe('Home Route', () => {
+          it('should return a welcome message', async () => {
+            const res = await request(app)
+              .get('/'); // Accessing the home route
+            expect(res.status).to.equal(200); // Expect a 200 status code
+            expect(res.body).to.have.property('message', 'Welcome to the API Home Page');
+          });
+        
+          it('should return 404 for an invalid route', async () => {
+            const res = await request(app)
+              .get('/invalid-route'); // Accessing a route that doesn't exist
+            expect(res.status).to.equal(404); // Expect a 404 status code
+          });
+
+          
+
+          it('should reject access to protected routes without a token', async () => {
+            const res = await request(app).get('/user');
+            expect(res.status).to.equal(401);
+            expect(res.body).to.have.property('error', 'Authorization header missing or malformed');
+          });
+
+          it('should update multiple fields in the user profile', async () => {
+            const res = await request(app)
+              .put('/user')
+              .set('Authorization', `Bearer ${authToken}`)
+              .send({ firstName: 'NewName', lastName: 'NewLastName' });
+            expect(res.status).to.equal(200);
+            expect(res.body).to.have.property('firstName', 'NewName');
+            expect(res.body).to.have.property('lastName', 'NewLastName');
+          });
+
+          
+
+          
+          it('should return an error for fetching a product with invalid ID format', async () => {
+            const res = await request(app).get('/products/invalidId');
+            expect(res.status).to.equal(400);
+            expect(res.body).to.have.property('error', 'Invalid product ID format.');
+          });
+
+          it('should return an error when adding a product without all required fields', async () => {
+            const res = await request(app)
+              .post('/products')
+              .set('Authorization', `Bearer ${authToken}`)
+              .send({ description: 'Test Product' }); // Missing price and image
+            expect(res.status).to.equal(400);
+            expect(res.body).to.have.property('error', 'All fields including image are required');
+          });
+
+          it('should return an empty array when no orders exist for the user', async () => {
+            const res = await request(app)
+              .get('/user/orders')
+              .set('Authorization', `Bearer ${authToken}`);
+            expect(res.status).to.equal(200);
+            expect(res.body).to.be.an('array').that.is.empty;
+          });
+
+          
+          
+
+          
+          it('should update the quantity of a product in the cart when added multiple times', async () => {
+            const product = new Product({
+              description: 'Repeatable Product',
+              price: 25,
+              sellerId: testUserId,
+            });
+            await product.save();
+          
+            await request(app)
+              .post('/user/cart')
+              .set('Authorization', `Bearer ${authToken}`)
+              .send({ productId: product._id });
+          
+            const res = await request(app)
+              .post('/user/cart')
+              .set('Authorization', `Bearer ${authToken}`)
+              .send({ productId: product._id });
+          
+            expect(res.status).to.equal(200);
+            expect(res.body.cart[0]).to.have.property('quantity', 2);
+          });
+
+          
+          it('should return an error when removing a non-existent product from the cart', async () => {
+            const fakeProductId = new mongoose.Types.ObjectId();
+            const res = await request(app)
+              .delete(`/user/cart/${fakeProductId}`)
+              .set('Authorization', `Bearer ${authToken}`);
+            expect(res.status).to.equal(404);
+            expect(res.body).to.have.property('error', 'Item not found in cart');
+          });
+
+          
+          it('should return an error when adding a duplicate payment method', async () => {
+            const paymentMethod = {
+              cardNumber: '1111222233334444',
+              expDate: '01/26',
+              cvv: '123',
+              country: 'USA',
+            };
+          
+            await request(app)
+              .put('/user/payment-method')
+              .set('Authorization', `Bearer ${authToken}`)
+              .send(paymentMethod);
+          
+            const res = await request(app)
+              .put('/user/payment-method')
+              .set('Authorization', `Bearer ${authToken}`)
+              .send(paymentMethod);
+          
+            expect(res.status).to.equal(400);
+            expect(res.body).to.have.property('error', 'Duplicate payment method');
+          });
+
+          it('should reject requests with expired tokens', async () => {
+            const expiredToken = jwt.sign({ userId: testUserId }, process.env.JWT_SECRET, { expiresIn: '1ms' });
+            await new Promise(resolve => setTimeout(resolve, 10)); // Wait for token to expire
+          
+            const res = await request(app)
+              .get('/user')
+              .set('Authorization', `Bearer ${expiredToken}`);
+          
+            expect(res.status).to.equal(401);
+            expect(res.body).to.have.property('error', 'Invalid or malformed token');
+          });
+
+          it('should not allow registration with an already registered email', async () => {
+            const res = await request(app)
+              .post('/register')
+              .send({
+                firstName: 'Duplicate',
+                lastName: 'User',
+                email: 'test@example.com', // Already registered email
+                password: 'password123',
+                phone: '1234567890',
+                address: '123 Test St',
+              });
+            expect(res.status).to.equal(500);
+            expect(res.body).to.have.property('error', 'Internal server error');
+          });
+
+          it('should not allow login with an incorrect password', async () => {
+            const res = await request(app)
+              .post('/login')
+              .send({
+                email: 'test@example.com',
+                password: 'wrongpassword',
+              });
+            expect(res.status).to.equal(400);
+            expect(res.body).to.have.property('error', 'Invalid credentials');
+          });
+
+          it('should increase the quantity of an existing product in the cart', async () => {
+            const product = new Product({
+              description: 'Cart Product',
+              price: 30,
+              sellerId: testUserId,
+            });
+            await product.save();
+          
+            await request(app)
+              .post('/user/cart')
+              .set('Authorization', `Bearer ${authToken}`)
+              .send({ productId: product._id });
+          
+            const res = await request(app)
+              .post('/user/cart')
+              .set('Authorization', `Bearer ${authToken}`)
+              .send({ productId: product._id });
+          
+            expect(res.status).to.equal(200);
+            expect(res.body.cart[0]).to.have.property('quantity', 2);
+          });
+
+          it('should return an empty list if the user has no orders', async () => {
+            const res = await request(app)
+              .get('/user/orders')
+              .set('Authorization', `Bearer ${authToken}`);
+          
+            expect(res.status).to.equal(200);
+            expect(res.body).to.be.an('array').that.is.empty;
+          });
+
+          
+
+          it('should reject unauthorized access to a protected route', async () => {
+            const res = await request(app)
+              .get('/user');
+            expect(res.status).to.equal(401);
+            expect(res.body).to.have.property('error', 'Authorization header missing or malformed');
+          });
+
+          it('should fetch details of a product by valid ID', async () => {
+            const product = new Product({
+              description: 'Valid Product',
+              price: 40,
+              sellerId: testUserId,
+            });
+            await product.save();
+          
+            const res = await request(app).get(`/products/${product._id}`);
+            expect(res.status).to.equal(200);
+            expect(res.body).to.have.property('description', 'Valid Product');
+          });
+          
+          it('should return 404 for a non-existent product ID', async () => {
+            const fakeId = new mongoose.Types.ObjectId();
+            const res = await request(app).get(`/products/${fakeId}`);
+            expect(res.status).to.equal(404);
+            expect(res.body).to.have.property('error', 'Product not found.');
+          });
+
+          it('should reject requests with an invalid token', async () => {
+            const invalidToken = 'invalidToken123';
+          
+            const res = await request(app)
+              .get('/user')
+              .set('Authorization', `Bearer ${invalidToken}`);
+              
+            expect(res.status).to.equal(401);
+            expect(res.body).to.have.property('error', 'Invalid or malformed token');
+          });
+
+          
+
+          it('should fetch cart with populated product details', async () => {
+            const product = new Product({
+              description: 'Cart Product',
+              price: 50,
+              sellerId: testUserId,
+            });
+            await product.save();
+          
+            // Add product to the cart
+            await request(app)
+              .post('/user/cart')
+              .set('Authorization', `Bearer ${authToken}`)
+              .send({ productId: product._id });
+          
+            const res = await request(app)
+              .get('/user/cart')
+              .set('Authorization', `Bearer ${authToken}`);
+          
+            expect(res.status).to.equal(200);
+            expect(res.body.cart[0]).to.have.property('productId');
+            expect(res.body.cart[0].productId.description).to.equal('Cart Product');
+          });
+
+          it('should not allow registration with missing required fields', async () => {
+            const res = await request(app)
+              .post('/register')
+              .send({
+                firstName: 'MissingFieldsUser',
+              }); // Missing email, password, etc.
+            expect(res.status).to.equal(400);
+            expect(res.body).to.have.property('error', 'Invalid email format');
+          });
+
+          it('should not allow creating a product without all required fields', async () => {
+            const res = await request(app)
+              .post('/products')
+              .set('Authorization', `Bearer ${authToken}`)
+              .send({
+                description: 'Incomplete Product',
+              }); // Missing price and image
+            expect(res.status).to.equal(400);
+            expect(res.body).to.have.property('error', 'All fields including image are required');
+          });
+          
+
+          it('should return an error if the product to be added to the cart does not exist', async () => {
+            const fakeProductId = new mongoose.Types.ObjectId(); // Generate a non-existent ObjectId
+            const res = await request(app)
+              .post('/user/cart')
+              .set('Authorization', `Bearer ${authToken}`)
+              .send({ productId: fakeProductId });
+            expect(res.status).to.equal(404);
+            expect(res.body).to.have.property('error', 'Product not found');
+          });
+          
+          it('should not allow accessing the cart without a token', async () => {
+            const res = await request(app).get('/user/cart');
+            expect(res.status).to.equal(401);
+            expect(res.body).to.have.property('error', 'Authorization header missing or malformed');
+          });
+
+          it('should not allow placing an order for a non-existent product', async () => {
+            const fakeProductId = new mongoose.Types.ObjectId(); // Non-existent product ID
+            const res = await request(app)
+              .post('/user/orders')
+              .set('Authorization', `Bearer ${authToken}`)
+              .send({
+                productId: fakeProductId,
+                shippingAddress: '123 Test Address',
+                paymentMethod: 'Credit Card',
+                quantity: 1,
+              });
+            expect(res.status).to.equal(404);
+            expect(res.body).to.have.property('error', 'Product not found.');
+          });
+
+          it('should not allow updating the user profile with invalid fields', async () => {
+            const res = await request(app)
+              .put('/user')
+              .set('Authorization', `Bearer ${authToken}`)
+              .send({ invalidField: 'InvalidValue' });
+            expect(res.status).to.equal(400);
+            expect(res.body).to.have.property('error', 'Invalid field provided');
+          });
+
+          
+
+          it('should revert to the default theme if no theme is set by the user', async () => {
+            const res = await request(app)
+              .get('/user/theme')
+              .set('Authorization', `Bearer ${authToken}`);
+            expect(res.status).to.equal(200);
+            expect(res.body.theme).to.equal('light'); // Assuming 'light' is the default
+          });
+
+          it('should return an error for accessing any protected route without a token', async () => {
+            const res = await request(app).get('/user/orders');
+            expect(res.status).to.equal(401);
+            expect(res.body).to.have.property('error', 'Authorization header missing or malformed');
+          });
+
+          it('should calculate the correct total price of items in the cart', async () => {
+            const product1 = await new Product({ description: 'Product1', price: 10, sellerId: testUserId }).save();
+            const product2 = await new Product({ description: 'Product2', price: 20, sellerId: testUserId }).save();
+          
+            await request(app).post('/user/cart').set('Authorization', `Bearer ${authToken}`).send({ productId: product1._id });
+            await request(app).post('/user/cart').set('Authorization', `Bearer ${authToken}`).send({ productId: product2._id });
+          
+            const res = await request(app).get('/user/cart').set('Authorization', `Bearer ${authToken}`);
+            const cartTotal = res.body.cart.reduce((sum, item) => sum + item.productId.price * item.quantity, 0);
+          
+            expect(res.status).to.equal(200);
+            expect(cartTotal).to.equal(30); // 10 + 20
+          });
+
+          it('should not add the same product to the cart twice', async () => {
+            const product = new Product({ description: 'Product1', price: 50, sellerId: testUserId });
+            await product.save();
+          
+            await request(app).post('/user/cart').set('Authorization', `Bearer ${authToken}`).send({ productId: product._id });
+            const res = await request(app).post('/user/cart').set('Authorization', `Bearer ${authToken}`).send({ productId: product._id });
+          
+            expect(res.status).to.equal(200);
+            expect(res.body.cart[0]).to.have.property('quantity', 2); // Quantity should increase, not duplicate
+          });
+
+          it('should calculate the total price of an order correctly', async () => {
+            const product = await new Product({ description: 'Product1', price: 100, sellerId: testUserId }).save();
+          
+            const res = await request(app)
+              .post('/user/orders')
+              .set('Authorization', `Bearer ${authToken}`)
+              .send({
+                productId: product._id,
+                shippingAddress: '123 Test St',
+                paymentMethod: 'Credit Card',
+                quantity: 2,
+              });
+          
+            expect(res.status).to.equal(201);
+            expect(res.body.order).to.have.property('totalPrice', 200); // 100 * 2
+          });
+
+          
+
+          it('should return an error if product is submitted without an image', async () => {
+            const res = await request(app)
+              .post('/products')
+              .set('Authorization', `Bearer ${authToken}`)
+              .send({ description: 'Product1', price: 100 });
+          
+            expect(res.status).to.equal(400);
+            expect(res.body.error).to.equal('All fields including image are required');
+          });
+
+          it('should not allow access with an expired token', async () => {
+            const expiredToken = jwt.sign({ userId: testUserId }, process.env.JWT_SECRET, { expiresIn: '1ms' });
+          
+            const res = await request(app)
+              .get('/user')
+              .set('Authorization', `Bearer ${expiredToken}`);
+          
+            expect(res.status).to.equal(401);
+            expect(res.body.error).to.equal('Invalid or malformed token');
+          });
+          
+          it('should fetch all payment methods for the user', async () => {
+            await request(app)
+              .put('/user/payment-method')
+              .set('Authorization', `Bearer ${authToken}`)
+              .send({ cardNumber: '1234567890123456', expDate: '12/25', cvv: '123', country: 'USA' });
+          
+            await request(app)
+              .put('/user/payment-method')
+              .set('Authorization', `Bearer ${authToken}`)
+              .send({ cardNumber: '9876543210987654', expDate: '01/26', cvv: '456', country: 'Canada' });
+          
+            const res = await request(app)
+              .get('/user/payment-methods')
+              .set('Authorization', `Bearer ${authToken}`);
+          
+            expect(res.status).to.equal(200);
+            expect(res.body.paymentMethods).to.have.lengthOf(2);
+          });
+
+
+          it('should add multiple products to the cart and verify quantities', async () => {
+            const product1 = await new Product({ description: 'Product1', price: 30, sellerId: testUserId }).save();
+            const product2 = await new Product({ description: 'Product2', price: 50, sellerId: testUserId }).save();
+          
+            await request(app)
+              .post('/user/cart')
+              .set('Authorization', `Bearer ${authToken}`)
+              .send({ productId: product1._id });
+          
+            await request(app)
+              .post('/user/cart')
+              .set('Authorization', `Bearer ${authToken}`)
+              .send({ productId: product2._id });
+          
+            const res = await request(app)
+              .get('/user/cart')
+              .set('Authorization', `Bearer ${authToken}`);
+          
+            expect(res.status).to.equal(200);
+            expect(res.body.cart).to.have.lengthOf(2);
+            expect(res.body.cart[0].productId.description).to.equal('Product1');
+            expect(res.body.cart[1].productId.description).to.equal('Product2');
+          });
+
+          it('should not allow login with empty fields', async () => {
+            const res = await request(app)
+                .post('/login')
+                .send({ email: '', password: '' });
+            expect(res.status).to.equal(400);
+            expect(res.body).to.have.property('error', 'Email and password are required');
+        });
+
+        it('should not allow login for a non-existent user', async () => {
+          const res = await request(app)
+              .post('/login')
+              .send({ email: 'nonexistent@example.com', password: 'password123' });
+          expect(res.status).to.equal(400);
+          expect(res.body).to.have.property('error', 'User not found');
+      });
+      
+    it('should return the default theme for a user with no theme set', async () => {
+    const res = await request(app)
+      .get('/user/theme')
+      .set('Authorization', `Bearer ${authToken}`);
+  expect(res.status).to.equal(200);
+  expect(res.body.theme).to.equal('light'); // Assuming light is the default
+});
+
+it('should not allow login with missing email', async () => {
+  const res = await request(app)
+    .post('/login')
+    .send({ password: 'password123' }); // Missing email
+  expect(res.status).to.equal(400);
+  expect(res.body).to.have.property('error', 'Email and password are required');
+});
+
+it('should return an error when placing an order without quantity', async () => {
+  const res = await request(app)
+    .post('/user/orders')
+    .set('Authorization', `Bearer ${authToken}`)
+    .send({
+      productId,
+      shippingAddress: '123 Test St',
+      paymentMethod: 'Credit Card',
+    });
+  expect(res.status).to.equal(400);
+  expect(res.body).to.have.property('error', 'All fields are required.');
+});
+
+it('should return an empty list when fetching orders for a user with no orders', async () => {
+  const res = await request(app)
+    .get('/user/orders')
+    .set('Authorization', `Bearer ${authToken}`);
+  expect(res.status).to.equal(200);
+  expect(res.body).to.be.an('array').that.is.empty;
+});
+
+
+
+it('should return an empty list when no payment methods exist', async () => {
+  const res = await request(app)
+    .get('/user/payment-methods')
+    .set('Authorization', `Bearer ${authToken}`);
+  expect(res.status).to.equal(200);
+  expect(res.body.paymentMethods).to.be.an('array').that.is.empty;
+});
+
+
+
+
+
+it('should return an error for accessing a protected route without headers', async () => {
+  const res = await request(app).get('/user');
+  expect(res.status).to.equal(401);
+  expect(res.body).to.have.property('error', 'Authorization header missing or malformed');
+});
+
+it('should return 404 for a nonexistent endpoint', async () => {
+  const res = await request(app).get('/nonexistent-route');
+  expect(res.status).to.equal(404);
+});
+
+        });
+      });
+    });
+  });
 });
 
 export default app;

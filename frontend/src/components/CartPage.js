@@ -14,7 +14,7 @@ const CartPage = () => {
     try {
       const response = await fetch('http://localhost:5001/user/cart', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+          Authorization: `Bearer ${localStorage.getItem('authToken')}`,
         },
       });
       if (response.ok) {
@@ -33,8 +33,8 @@ const CartPage = () => {
       const response = await fetch(`http://localhost:5001/user/cart/${productId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-        }
+          Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+        },
       });
 
       if (response.ok) {
@@ -52,7 +52,7 @@ const CartPage = () => {
       <div className="cart-header">
         <h1>Your Cart</h1>
       </div>
-      
+
       <div className="cart-items">
         {cartItems.length > 0 ? (
           cartItems.map((item, index) => (
@@ -73,7 +73,23 @@ const CartPage = () => {
                 <p>Quantity:</p>
                 <p>{item.quantity}</p>
               </div>
-              <button className="remove-button" onClick={() => handleDeleteItem(item.productId._id)}>
+              <button
+                className="buy-now-button"
+                onClick={() =>
+                  navigate(`/buy-now/${item.productId._id}`, {
+                    state: {
+                      product: item.productId,
+                      quantity: item.quantity,
+                    },
+                  })
+                }
+              >
+                Buy Now
+              </button>
+              <button
+                className="remove-button"
+                onClick={() => handleDeleteItem(item.productId._id)}
+              >
                 Remove
               </button>
             </div>
