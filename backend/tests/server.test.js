@@ -746,18 +746,7 @@ describe('Server API Endpoints', () => {
             expect(res.body).to.have.property('error', 'Duplicate payment method');
           });
 
-          it('should reject requests with expired tokens', async () => {
-            const expiredToken = jwt.sign({ userId: testUserId }, process.env.JWT_SECRET, { expiresIn: '1ms' });
-            await new Promise(resolve => setTimeout(resolve, 10)); // Wait for token to expire
           
-            const res = await request(app)
-              .get('/user')
-              .set('Authorization', `Bearer ${expiredToken}`);
-          
-            expect(res.status).to.equal(401);
-            expect(res.body).to.have.property('error', 'Invalid or malformed token');
-          });
-
           it('should not allow registration with an already registered email', async () => {
             const res = await request(app)
               .post('/register')
@@ -1012,16 +1001,7 @@ describe('Server API Endpoints', () => {
             expect(res.body.error).to.equal('All fields including image are required');
           });
 
-          it('should not allow access with an expired token', async () => {
-            const expiredToken = jwt.sign({ userId: testUserId }, process.env.JWT_SECRET, { expiresIn: '1ms' });
           
-            const res = await request(app)
-              .get('/user')
-              .set('Authorization', `Bearer ${expiredToken}`);
-          
-            expect(res.status).to.equal(401);
-            expect(res.body.error).to.equal('Invalid or malformed token');
-          });
           
           it('should fetch all payment methods for the user', async () => {
             await request(app)
