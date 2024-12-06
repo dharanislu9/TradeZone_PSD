@@ -38,6 +38,7 @@ const Login = () => {
         // Store the token and username in localStorage
         localStorage.setItem('authToken', data.token);
         localStorage.setItem('username', data.username);
+        localStorage.setItem('isLoggedIn', "true");
 
         // Log the stored token for confirmation
         console.log('Token stored in localStorage:', localStorage.getItem('authToken'));

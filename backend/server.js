@@ -12,6 +12,7 @@ import nodemailer from 'nodemailer';
 import productRoutes from "./routes/product.js"
 import userRoutes from "./routes/user.js"
 import ProductModel from './models/product.js';
+import analyImageRoute from "./routes/analyzeImage.js"
 import { title } from 'process';
 
 dotenv.config();
@@ -532,6 +533,7 @@ app.put('/user', verifyToken, async (req, res) => {
 app.use("/api", productRoutes)
 app.use("/api/users", userRoutes)
 app.use("/uploads", express.static("uploads"));
+app.use("/analyze-image", analyImageRoute)
 
 
 if (process.env.NODE_ENV !== 'test') {

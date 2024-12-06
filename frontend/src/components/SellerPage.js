@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './SellerPage.css';
+import axios from "axios"
 
 const SellerPage = () => {
   const [formData, setFormData] = useState({
@@ -11,6 +12,10 @@ const SellerPage = () => {
   });
   const [successMessage, setSuccessMessage] = useState('');
   const [loading, setLoading] = useState(false); // Loading state
+  const [isLoading, setIsLoading] = useState(false); // Loading state for caption generator
+
+  const [gottenDescription, setGottenDescription] = useState()
+
   const navigate = useNavigate();
 
   const handleInputChange = (e) => {
@@ -76,6 +81,35 @@ const SellerPage = () => {
     }
   };
 
+
+  const fetchImageDescription = async () => {
+    setIsLoading(true)
+     try {
+      // const imageUrl = imageFile
+      const itemURLs = {
+        bike :"https://cdn.pixabay.com/photo/2015/08/27/09/06/bike-909690_1280.jpg",
+        car :"https://cdn.pixabay.com/photo/2015/01/19/13/51/car-604019_1280.jpg",
+        lamp :"https://cdn.pixabay.com/photo/2017/10/30/23/34/lamp-2903830_1280.jpg"
+        }
+       const itemObject = formData.image.name.split("-")[0]
+
+      let imageUrl = itemURLs[itemObject]
+
+
+
+
+      // const imageUrl = await uploadToCloud(itemImages)
+       const response = await axios.post('http://localhost:5001/analyze-image', { imageUrl }); // Use your backend endpoint
+      setFormData({...formData, description:response.data.caption})
+    } catch (error) {
+      console.error('Error fetching image description:', error);
+      alert('Failed to fetch description for the image.');
+    }
+    setIsLoading(false)
+    setGottenDescription(true)
+  };
+
+ 
   return (
     <div className="seller-page">
       <h2>Sell Your Product</h2>
@@ -84,8 +118,8 @@ const SellerPage = () => {
           {successMessage}
         </div>
       )}
-      <form onSubmit={handleSubmit} className="seller-form">
-        <div className="form-group">
+
+<div className="form-group">
           <label htmlFor="image">Product Image:</label>
           <input 
             type="file" 
@@ -96,6 +130,10 @@ const SellerPage = () => {
             required
           />
         </div>
+
+     {
+      gottenDescription?( <form onSubmit={handleSubmit} className="seller-form">
+        
 
         {/* Title Field */}
         <div className="form-group">
@@ -142,9 +180,12 @@ const SellerPage = () => {
           {loading ? 'Submitting...' : 'Submit Product'}
         </button>
         <button type="button" onClick={() => navigate('/')}>Back</button>
-      </form>
+      </form>):<button disabled={isLoading} onClick={fetchImageDescription} > {isLoading?"Analyzing image...":"Upload Item"} </button>
+     }
+
+
     </div>
-  );
+  )
 };
 
 export default SellerPage;
