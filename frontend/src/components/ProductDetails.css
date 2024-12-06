@@ -1,144 +1,208 @@
+/* Main Product Details Container */
 .product-details {
   display: flex;
   flex-direction: column;
-  align-items: center; /* Center items horizontally */
-  justify-content: center; /* Center items vertically */
-  height: 100vh; /* Full viewport height */
-  background: linear-gradient(to right, #f0f4c3, #c8e6c9); /* Light green gradient background */
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: linear-gradient(to right, #333, #333); /* Soft green gradient */
   padding: 20px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  border-radius: 8px;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
 }
 
+/* Product Image Styling */
 .product-image {
-  width: 300px; /* Set width for the product image */
-  height: auto; /* Maintain aspect ratio */
-  border-radius: 8px; /* Rounded corners */
-  margin-bottom: 20px; /* Space between image and info */
+  width: 280px;
+  height: auto;
+  border-radius: 12px;
+  margin-bottom: 25px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease-in-out;
 }
 
+.product-image:hover {
+  transform: scale(1.05);
+}
+
+/* Product Info Box */
 .product-info {
   width: 100%;
-  max-width: 400px; /* Max width for the product info */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background: white; /* White background for product info */
-  border-radius: 8px; /* Rounded corners */
-  padding: 20px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  max-width: 420px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
 }
 
+/* Textarea for Description */
 .description-box {
   width: 100%;
-  height: 80px; /* Fixed height for the textarea */
-  border: 1px solid #ccc; /* Border for the textarea */
-  border-radius: 4px; /* Rounded corners */
-  padding: 10px; /* Padding inside textarea */
-  margin-bottom: 15px; /* Space below textarea */
-  font-size: 16px; /* Font size for textarea text */
-  resize: none; /* Disable resizing */
+  height: 100px;
+  border: 2px solid #333;;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 16px;
+  resize: none;
+  margin-bottom: 18px;
+  transition: border-color 0.3s ease;
 }
 
+.description-box:focus {
+  border-color: #333;;
+  outline: none;
+}
+
+/* Price Input */
 .price-input {
   width: 100%;
-  border: 1px solid #ccc; /* Border for the price input */
-  border-radius: 4px; /* Rounded corners */
-  padding: 10px; /* Padding inside input */
-  font-size: 16px; /* Font size for input text */
-  margin-bottom: 15px; /* Space below input */
+  border: 2px solid #333;;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 16px;
+  margin-bottom: 18px;
+  transition: border-color 0.3s ease;
 }
 
+.price-input:focus {
+  border-color: #388e3c;
+  outline: none;
+}
+
+/* Worth Slider */
 .worth-slider {
   width: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center; /* Center items in slider */
+  align-items: center;
+  margin-top: 15px;
 }
 
 .worth-slider label {
-  margin-bottom: 10px; /* Space below label */
-  font-weight: bold; /* Bold label text */
+  margin-bottom: 10px;
+  font-weight: bold;
+  color: #388e3c;
 }
 
 .worth-slider input[type="range"] {
-  -webkit-appearance: none; /* Chrome, Safari, newer versions of Edge */
-  -moz-appearance: none; /* Firefox */
-  appearance: none; /* Standard */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
   width: 100%;
-  height: 5px;
+  height: 8px;
   background: #c8e6c9;
   border-radius: 5px;
   outline: none;
+  transition: background-color 0.3s ease;
 }
 
+.worth-slider input[type="range"]:hover {
+  background-color: #333;;
+}
 
 .worth-slider input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none; /* Remove default styling */
-  appearance: none; /* Remove default styling */
-  width: 20px; /* Thumb width */
-  height: 20px; /* Thumb height */
-  background: #388e3c; /* Thumb color */
-  border-radius: 50%; /* Round thumb */
-  cursor: pointer; /* Pointer cursor on hover */
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  background: #333;;
+  border-radius: 50%;
+  cursor: pointer;
 }
 
 .worth-slider input[type="range"]::-moz-range-thumb {
-  width: 20px; /* Thumb width */
-  height: 20px; /* Thumb height */
-  background: #388e3c; /* Thumb color */
-  border-radius: 50%; /* Round thumb */
-  cursor: pointer; /* Pointer cursor on hover */
+  width: 24px;
+  height: 24px;
+  background: #333;;
+  border-radius: 50%;
+  cursor: pointer;
 }
 
 /* Button Styles */
 button {
   font-family: inherit;
-  font-size: 20px;
-  background: #212121;
+  font-size: 18px;
+  background: #333;;
   color: white;
-  fill: rgb(155, 153, 153);
-  padding: 0.7em 1em;
-  padding-left: 0.9em;
+  padding: 0.8em 1.2em;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
   display: flex;
   align-items: center;
-  cursor: pointer;
-  border: none;
-  border-radius: 15px;
-  font-weight: 1000;
-}
-
-button span {
-  display: block;
-  margin-left: 0.3em;
-  transition: all 0.3s ease-in-out;
-}
-
-button svg {
-  display: block;
-  transform-origin: center center;
-  transition: transform 0.3s ease-in-out;
+  transition: background 0.3s ease-in-out, transform 0.2s ease;
 }
 
 button:hover {
-  background: #000;
-}
-
-button:hover .svg-wrapper {
-  transform: scale(1.25);
-  transition: 0.5s linear;
-}
-
-button:hover svg {
-  transform: translateX(1.2em) scale(1.1);
-  fill: #fff;
-}
-
-button:hover span {
-  opacity: 0;
-  transition: 0.5s linear;
+  background: #2e7d32;
 }
 
 button:active {
   transform: scale(0.95);
+}
+
+button svg {
+  margin-left: 10px;
+  transition: transform 0.3s ease-in-out;
+}
+
+button:hover svg {
+  transform: translateX(5px);
+  fill: #fff;
+}
+
+button span {
+  display: inline-block;
+  margin-left: 8px;
+  transition: opacity 0.3s ease;
+}
+
+button:hover span {
+  opacity: 0.7;
+}
+
+.back-button {
+  background-color: #388e3c;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-bottom: 20px;
+  font-size: 16px;
+}
+
+.back-button:hover {
+  background-color: #2e7d32;
+}
+
+.submit-button,
+.back-button {
+  display: inline-block;
+  margin-top: 20px;
+  padding: 10px 20px;
+  border-radius: 5px;
+  background-color: #388e3c;
+  color: white;
+  cursor: pointer;
+  border: none;
+  font-size: 16px;
+}
+
+.submit-button:hover,
+.back-button:hover {
+  background-color: #2e7d32;
+}
+
+.submit-button:active,
+.back-button:active {
+  transform: scale(0.95);
+}
+
+/* Optional: To add some space between the buttons */
+.product-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
