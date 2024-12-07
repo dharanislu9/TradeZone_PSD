@@ -123,7 +123,7 @@ button span {
 }
 
 button:hover {
-  background: #000;
+  background: grey;
 }
 
 button:active {
