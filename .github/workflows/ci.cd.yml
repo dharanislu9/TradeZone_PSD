@@ -3,16 +3,16 @@ name: Full Stack CI/CD Pipeline
 on:
   push:
     branches:
-      - main
+      - Features
   pull_request:
     branches:
-      - main
+      - Features
 
 jobs:
   # Frontend Job
   frontend:
     runs-on: ubuntu-latest
-    timeout-minutes: 20  
+    timeout-minutes: 20  # Set a timeout to avoid indefinite running
 
     steps:
       - name: Checkout code
@@ -42,7 +42,7 @@ jobs:
 
   # Backend Job
   backend:
-    runs-on: ubuntu-latestx
+    runs-on: ubuntu-latest
     timeout-minutes: 20  # Set a timeout to avoid indefinite running
 
     env:
