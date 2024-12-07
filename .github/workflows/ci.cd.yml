@@ -19,7 +19,6 @@ jobs:
       with:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
-
     - name: Set up a unique tag for our docker image
       id: tag
       run: echo "tag=$(date +%s)" >> $GITHUB_ENV
