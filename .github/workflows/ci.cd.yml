@@ -59,8 +59,8 @@ jobs:
   docker:
     runs-on: ubuntu-latest
     needs: 
-      - backend
-      - frontend # Ensure the backend job completes first
+      - backend # Ensure the backend job completes first
+      - frontend # Ensure the frontend job completes first
     timeout-minutes: 20
     steps:
       - name: Checkout code
