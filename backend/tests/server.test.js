@@ -277,6 +277,30 @@ describe('Server API Endpoints', () => {
       expect(res.body).to.have.property('worth', 85); // Updated worthiness level
     });
     
+
+    //Test for Updating Product Details (Other than Worthiness) - dharani
+
+    it('should update product description and price', async () => {
+      // Create a product first
+      const product = new Product({
+        description: 'Old Description',
+        price: 100,
+        imagePath: 'https://example.com/old.jpg',
+        worth: 70,
+        sellerId: testUserId
+      });
+      await product.save();
+    
+      const res = await request(app)
+        .put(`/products/${product._id}`)
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({ description: 'Updated Description', price: 120 });
+    
+      expect(res.status).to.equal(200);
+      expect(res.body).to.have.property('description', 'Updated Description');
+      expect(res.body).to.have.property('price', 120);
+    });
+    
     //check if the worthiness level falls within acceptable boundaries, such as 0-100.
     it('should not allow a worthiness level outside the valid range', async () => {
       const res = await request(app)
@@ -315,5 +339,35 @@ describe('Server API Endpoints', () => {
     
   });
 });
+//d
+it('should fetch a list of products with pagination', async () => {
+  // Add some products to the database
+  await Product.insertMany([
+    { description: 'Product 1', price: 10, imagePath: 'https://example.com/img1.jpg', worth: 70, sellerId: testUserId },
+    { description: 'Product 2', price: 20, imagePath: 'https://example.com/img2.jpg', worth: 80, sellerId: testUserId },
+    { description: 'Product 3', price: 30, imagePath: 'https://example.com/img3.jpg', worth: 60, sellerId: testUserId },
+  ]);
+
+  const res = await request(app)
+    .get('/products?page=1&limit=2')
+    .set('Authorization', `Bearer ${authToken}`);
+
+  expect(res.status).to.equal(200);
+  expect(res.body.products).to.have.lengthOf(2); // Verify the number of products per page
+  expect(res.body).to.have.property('totalPages');
+});
+
+
+//d - reset password
+it('should send a password reset email', async () => {
+  const res = await request(app)
+    .post('/user/reset-password')
+    .send({ email: 'test@example.com' });
+
+  expect(res.status).to.equal(200);
+  expect(res.body).to.have.property('message', 'Password reset email sent successfully');
+});
+
+
 
 export default app;
