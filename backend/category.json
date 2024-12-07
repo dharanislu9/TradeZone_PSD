@@ -1,0 +1,17 @@
+[
+    {
+      "_id": ObjectId("6481e876f1d7b7a8c9e12345"),
+      "title": "Electronics",
+      "sub_title": "Gadgets and devices",
+      "code": "ELEC",
+      "image_url": "https://example.com/images/electronics.jpg"
+    },
+    {
+      "_id": ObjectId("6481e876f1d7b7a8c9e54321"),
+      "title": "Fashion",
+      "sub_title": "Trendy clothing and accessories",
+      "code": "FASH",
+      "image_url": "https://example.com/images/fashion.jpg"
+    }
+  ]
+  

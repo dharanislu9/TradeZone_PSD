@@ -1,80 +1,49 @@
-// src/components/EventList.test.js
+// src/components/EventList.js
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import axios from 'axios';
+import './EventList.css';
 
-import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
-import '@testing-library/jest-dom/extend-expect';
-import { rest } from 'msw';
-import { setupServer } from 'msw/node';
-import EventList from './EventList';
+const EventList = () => {
+  const { categoryCode } = useParams(); // Capture category code from URL
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-const server = setupServer(
-  
-  rest.get('http://localhost:5001/api/events', (req, res, ctx) => {
-    return res(
-      ctx.json({
-        events: [
-          {
-            _id: '1',
-            title: 'Black Friday Sale',
-            description: 'Get up to 70% off on selected items!',
-            startDate: '2024-11-25T00:00:00Z',
-            endDate: '2024-11-30T23:59:59Z',
-            imageUrl: 'http://example.com/black-friday.jpg'
-          },
-          {
-            _id: '2',
-            title: 'Christmas Special',
-            description: 'Exclusive discounts on holiday collections.',
-            startDate: '2024-12-20T00:00:00Z',
-            endDate: '2024-12-25T23:59:59Z',
-            imageUrl: 'http://example.com/christmas-special.jpg'
-          },
-        ]
-      })
-    );
-  })
-);
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const response = await axios.get(`http://localhost:5001/api/events/${categoryCode}`);
+        setEvents(response.data);
+        setLoading(false);
+      } catch (err) {
+        setError('Failed to fetch events');
+        setLoading(false);
+      }
+    };
 
+    fetchEvents();
+  }, [categoryCode]);
 
-beforeAll(() => server.listen());
-afterEach(() => server.resetHandlers());
-afterAll(() => server.close());
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>{error}</p>;
 
-describe('EventList Component', () => {
-  it('displays loading initially', () => {
-    render(<EventList />);
+  return (
+    <div className="event-list">
+      <h2>Events for Category: {categoryCode}</h2>
+      <div className="events-container">
+        {events.map((event) => (
+          <div key={event._id} className="event-item">
+            <img src={event.imageUrl} alt={event.title} />
+            <h3>{event.title}</h3>
+            <p>{event.description}</p>
+            <p><strong>Start:</strong> {new Date(event.startDate).toLocaleDateString()}</p>
+            <p><strong>End:</strong> {new Date(event.endDate).toLocaleDateString()}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
-    expect(screen.getByText(/loading.../i)).toBeInTheDocument();
-  });
-
-  it('displays events after successful fetch', async () => {
-    render(<EventList />);
-
-    await waitFor(() => {
-      expect(screen.getByText('Events and Limited Sales')).toBeInTheDocument();
-      expect(screen.getByText('Black Friday Sale')).toBeInTheDocument();
-      expect(screen.getByText('Get up to 70% off on selected items!')).toBeInTheDocument();
-      expect(screen.getByText('Christmas Special')).toBeInTheDocument();
-      expect(screen.getByText('Exclusive discounts on holiday collections.')).toBeInTheDocument();
-    });
-
-    const images = screen.getAllByRole('img');
-    expect(images[0]).toHaveAttribute('src', 'http://example.com/black-friday.jpg');
-    expect(images[1]).toHaveAttribute('src', 'http://example.com/christmas-special.jpg');
-  });
-
-  it('displays error message on fetch failure', async () => {
-    // Mock the API to return an error
-    server.use(
-      rest.get('http://localhost:5001/api/events', (req, res, ctx) => {
-        return res(ctx.status(500));
-      })
-    );
-
-    render(<EventList />);
-
-    await waitFor(() => {
-      expect(screen.getByText('Failed to fetch events')).toBeInTheDocument();
-    });
-  });
-});
+export default EventList;

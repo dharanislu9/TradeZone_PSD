@@ -1,10 +1,11 @@
+// models/category.js
 const mongoose = require('mongoose');
 
 const categorySchema = new mongoose.Schema({
-  id: { type: Number, required: true },
   title: { type: String, required: true },
-  subTitle: { type: String },
-  image_Url: { type: String }
+  subTitle: { type: String, required: true },
+  code: { type: String, required: true, unique: true }, // Unique code for each category
+  image_Url: { type: String, required: true }
 });
 
 module.exports = mongoose.model('Category', categorySchema);
