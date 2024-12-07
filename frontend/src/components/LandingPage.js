@@ -40,9 +40,7 @@ const LandingPage = () => {
           </div>
         </div>
 
-          <div className="navbar-center">
-            <input type="text" placeholder="Search for product..." className="search-bar" />
-          </div>
+        
 
         <div className="navbar-right">
           {username ? (

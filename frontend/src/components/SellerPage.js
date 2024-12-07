@@ -33,7 +33,6 @@ const SellerPage = () => {
     });
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.image || !formData.title || !formData.description || !formData.price) {
@@ -50,6 +49,7 @@ const SellerPage = () => {
     const token = localStorage.getItem('authToken');
     if (!token) {
       alert('You need to be logged in to submit a product.');
+      setLoading(false);
       setLoading(false);
       return;
     }
@@ -78,7 +78,7 @@ const SellerPage = () => {
       alert('An error occurred while submitting the product. Please try again.');
     } finally {
       setLoading(false); // Stop loading
-    }
+    } 
   };
 
 
@@ -161,8 +161,6 @@ const SellerPage = () => {
             required
           />
         </div>
-
-        {/* Price Field */}
         <div className="form-group">
           <label htmlFor="price">Product Price ($):</label>
           <input
@@ -189,3 +187,4 @@ const SellerPage = () => {
 };
 
 export default SellerPage;
+

@@ -10,7 +10,9 @@ import LandingPage from './components/LandingPage';
 import Profile from './components/Profile';
 import SettingsPage from './components/Settings/SettingsPage';
 import LocationPage from './components/LocationPage';
-import CartPage from './components/CartPage'; // Import the CartPage component
+import CartPage from './components/CartPage';
+import BuyNowPage from './components/BuyNowPage';
+import OrdersPage from './components/OrdersPage';
 
 const isAuthenticated = () => {
   const token = localStorage.getItem('authToken');
@@ -93,6 +95,8 @@ const App = () => {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/seller-page" element={<SellerPage />} />
         <Route path="/location" element={<LocationPage />} />
+        <Route path="/buy-now/:productId" element={<BuyNowPage />} />
+        <Route path="/orders" element={<OrdersPage />} />
       </Routes>
     </Router>
   );

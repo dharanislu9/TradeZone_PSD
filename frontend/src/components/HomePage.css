@@ -11,6 +11,7 @@ body, html {
   background: linear-gradient(135deg, #2b2b2b, #3b3b3b); /* Dark gradient background */
   color: #e0e0e0;
   height: 100%;
+  overflow-x: hidden;
 }
 
 /* Home Wrapper */
@@ -43,30 +44,8 @@ body, html {
   font-weight: bold;
 }
 
-/* Search bar container inside the header */
-.search-bar-container {
-  flex-grow: 1;
-  display: flex;
-  justify-content: center;
-  padding: 0 20px;
-}
-
-.search-bar {
-  width: 100%;
-  max-width: 400px;
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  background-color: #f0f0f0; /* Contrast color */
-  color: #333;
-}
-
-.search-bar::placeholder {
-  color: #888;
-}
-
-/* Navigation buttons styling */
-.nav-buttons {
+/* Cart and Profile Buttons */
+.header-container-right {
   display: flex;
   align-items: center;
   gap: 15px;
@@ -117,7 +96,7 @@ body, html {
 
 .dropdown-menu {
   position: absolute;
-  top: 60px;
+  top: 50px;
   right: 0;
   background-color: #3a3a3a;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
@@ -144,8 +123,6 @@ body, html {
   display: flex;
   flex-grow: 1;
   width: 100%;
-  height: 100%;
-  flex-grow: 1;
 }
 
 /* Sidebar */
@@ -300,4 +277,22 @@ body, html {
 .apply-button:hover {
   background: linear-gradient(135deg, #6e8ea2, #4e6b7c);
   box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
+}
+
+.logo-button {
+  text-decoration: none; /* Remove the underline */
+  color: inherit; /* Ensure the text color is consistent */
+}
+
+.logo-text {
+  font-size: 2rem;
+  font-weight: bold;
+  margin: 0;
+  color: #4CAF50; /* Set the color for the logo */
+  cursor: pointer; /* Change the cursor to indicate clickability */
+}
+
+.logo-button:hover .logo-text {
+  color: #3e8e41; /* Optional: Change color on hover */
+  text-decoration: none; /* Ensure no underline appears on hover */
 }

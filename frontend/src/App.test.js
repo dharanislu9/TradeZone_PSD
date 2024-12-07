@@ -10,6 +10,11 @@ import LocationPage from './components/LocationPage';
 import ThemeSettings from './components/Settings/ThemeSettings';
 import AccountSettings from './components/Settings/AccountSettings';
 import PaymentMethodSettings from './components/Settings/PaymentMethodSettings';
+import BuyNowPage from './components/BuyNowPage';
+import SellerPage from './components/SellerPage';
+import OrdersPage from './components/OrdersPage';
+
+
 
 import axios from 'axios';
 
@@ -40,15 +45,7 @@ jest.mock('axios');
 
 // Test cases for HomePage component
 
-afterEach(() => {
-    global.fetch.mockClear();
-});
-
-jest.mock('axios');
-
-// Test cases for HomePage component
-
-// Login Component Tests
+// Test cases for Login component
 describe('Login Component', () => {
     test('renders Login form with email and password fields', () => {
         render(
@@ -630,7 +627,327 @@ describe('PaymentMethodSettings Component', () => {
   
       expect(screen.queryByText(/Change Location/i)).not.toBeInTheDocument();
     });
-  
     
-  });
+    describe('BuyNowPage Component', () => {
+        beforeEach(() => {
+          // Mock the localStorage
+          global.localStorage.setItem('authToken', 'mockToken');
+          
+          // Mock fetch
+          global.fetch = jest.fn();
+        });
+      
+        afterEach(() => {
+          jest.clearAllMocks();
+          global.localStorage.clear();
+        });
+      
+        test('renders loading spinner while loading', () => {
+          render(
+            <Router>
+              <BuyNowPage />
+            </Router>
+          );
+      
+          expect(screen.getByText('Loading product details...')).toBeInTheDocument();
+        });
+      
+        test('renders product details after successful fetch', async () => {
+          const mockProduct = {
+            description: 'Test Product',
+            price: 50,
+          };
+      
+          global.fetch.mockImplementationOnce(() =>
+            Promise.resolve({
+              ok: true,
+              json: () => Promise.resolve(mockProduct),
+            })
+          );
+      
+          render(
+            <Router>
+              <BuyNowPage />
+            </Router>
+          );
+      
+          expect(await screen.findByText('Test Product')).toBeInTheDocument();
+          expect(screen.getByText('Price per item: $50')).toBeInTheDocument();
+        });
+      
+        test('shows error if product is not found', async () => {
+          global.fetch.mockImplementationOnce(() =>
+            Promise.resolve({
+              ok: false,
+              json: () => Promise.resolve({ error: 'Product not found.' }),
+            })
+          );
+      
+          render(
+            <Router>
+              <BuyNowPage />
+            </Router>
+          );
+      
+          expect(await screen.findByText('Product not found. Please try again later.')).toBeInTheDocument();
+        });
+      
+        test('displays payment methods fetched from API', async () => {
+          const mockProduct = {
+            description: 'Test Product',
+            price: 50,
+          };
+      
+          const mockPaymentMethods = [
+            { cardNumber: '1234', country: 'US' },
+            { cardNumber: '5678', country: 'India' },
+          ];
+      
+          global.fetch
+            .mockImplementationOnce(() =>
+              Promise.resolve({
+                ok: true,
+                json: () => Promise.resolve(mockProduct),
+              })
+            )
+            .mockImplementationOnce(() =>
+              Promise.resolve({
+                ok: true,
+                json: () => Promise.resolve({ paymentMethods: mockPaymentMethods }),
+              })
+            );
+      
+          render(
+            <Router>
+              <BuyNowPage />
+            </Router>
+          );
+      
+          expect(await screen.findByText('1234 - US')).toBeInTheDocument();
+          expect(screen.getByText('5678 - India')).toBeInTheDocument();
+        });
+
+        describe('SellerPage Component', () => {
+            beforeEach(() => {
+              // Mock the localStorage
+              global.localStorage.setItem('authToken', 'mockToken');
+          
+              // Mock fetch
+              global.fetch = jest.fn();
+            });
+          
+            afterEach(() => {
+              jest.clearAllMocks();
+              global.localStorage.clear();
+            });
+          
+            test('renders the form elements correctly', () => {
+              render(
+                <Router>
+                  <SellerPage />
+                </Router>
+              );
+          
+              expect(screen.getByText('Sell Your Product')).toBeInTheDocument();
+              expect(screen.getByLabelText('Product Image:')).toBeInTheDocument();
+              expect(screen.getByLabelText('Product Description:')).toBeInTheDocument();
+              expect(screen.getByLabelText('Product Price ($):')).toBeInTheDocument();
+              expect(screen.getByText('Submit Product')).toBeInTheDocument();
+            });
+          
+            
+          
+            test('uploads image and updates state correctly', async () => {
+              render(
+                <Router>
+                  <SellerPage />
+                </Router>
+              );
+          
+              const file = new File(['dummy content'], 'example.png', { type: 'image/png' });
+              const fileInput = screen.getByLabelText('Product Image:');
+          
+              fireEvent.change(fileInput, { target: { files: [file] } });
+          
+              expect(fileInput.files[0]).toBe(file);
+              expect(fileInput.files).toHaveLength(1);
+            });
+
+            test('renders SellerPage with all form elements', () => {
+                render(
+                  <Router>
+                    <SellerPage />
+                  </Router>
+                );
+              
+                expect(screen.getByText('Sell Your Product')).toBeInTheDocument();
+                expect(screen.getByLabelText('Product Image:')).toBeInTheDocument();
+                expect(screen.getByLabelText('Product Description:')).toBeInTheDocument();
+                expect(screen.getByLabelText('Product Price ($):')).toBeInTheDocument();
+                expect(screen.getByRole('button', { name: /Submit Product/i })).toBeInTheDocument();
+                expect(screen.getByRole('button', { name: /Back/i })).toBeInTheDocument();
+              });
+
+              test('shows alert when form is submitted without required fields', () => {
+                window.alert = jest.fn(); // Mock the alert function
+              
+                render(
+                  <Router>
+                    <SellerPage />
+                  </Router>
+                );
+              
+                fireEvent.click(screen.getByRole('button', { name: /Submit Product/i }));
+              
+                expect(window.alert).toHaveBeenCalledWith('Please fill out all fields.');
+              });
+
+              test('displays success message after successful submission', async () => {
+                const mockFetch = jest.spyOn(global, 'fetch').mockResolvedValueOnce({
+                  ok: true,
+                  json: async () => ({ message: 'Product submitted successfully!' }),
+                });
+              
+                render(
+                  <Router>
+                    <SellerPage />
+                  </Router>
+                );
+              
+                const file = new File(['dummy content'], 'example.png', { type: 'image/png' });
+                fireEvent.change(screen.getByLabelText('Product Image:'), { target: { files: [file] } });
+                fireEvent.change(screen.getByLabelText('Product Description:'), { target: { value: 'Test Product' } });
+                fireEvent.change(screen.getByLabelText('Product Price ($):'), { target: { value: '100' } });
+              
+                fireEvent.click(screen.getByRole('button', { name: /Submit Product/i }));
+              
+                await screen.findByText('Product submitted successfully!');
+                expect(screen.getByText('Product submitted successfully!')).toBeInTheDocument();
+              
+                mockFetch.mockRestore(); // Clean up the mock
+              });
+
+              jest.mock('react-router-dom', () => ({
+                ...jest.requireActual('react-router-dom'),
+                useNavigate: jest.fn(),
+              }));
+              
+              describe('OrdersPage Component', () => {
+                let mockNavigate;
+              
+                beforeEach(() => {
+                  mockNavigate = jest.fn();
+                  jest
+                    .spyOn(require('react-router-dom'), 'useNavigate')
+                    .mockReturnValue(mockNavigate);
+              
+                  jest.spyOn(global, 'fetch').mockImplementation((url) => {
+                    if (url === 'http://localhost:5001/user/orders') {
+                      return Promise.resolve({
+                        ok: true,
+                        json: () =>
+                          Promise.resolve([
+                            {
+                              _id: 'order123',
+                              productId: { description: 'Sample Product' },
+                              quantity: 2,
+                              totalPrice: 50,
+                              shippingAddress: '123 Test St, Test City',
+                              paymentMethod: 'Visa 1234',
+                              orderDate: '2024-11-23T00:00:00Z',
+                            },
+                          ]),
+                      });
+                    }
+                    return Promise.reject(new Error('Unknown endpoint'));
+                  });
+                });
+              
+                afterEach(() => {
+                  jest.restoreAllMocks();
+                });
+              
+                test('renders loading state initially', () => {
+                  render(
+                    <Router>
+                      <OrdersPage />
+                    </Router>
+                  );
+                  const loadingText = screen.getByText(/Loading your orders.../i);
+                  expect(loadingText).toBeInTheDocument();
+                });
+              
+                test('displays orders when fetched successfully', async () => {
+                  render(
+                    <Router>
+                      <OrdersPage />
+                    </Router>
+                  );
+              
+                  await waitFor(() => {
+                    const orderTitle = screen.getByText(/Product: Sample Product/i);
+                    expect(orderTitle).toBeInTheDocument();
+                  });
+              
+                  const quantity = screen.getByText(/Quantity: 2/i);
+                  expect(quantity).toBeInTheDocument();
+              
+                  const totalPrice = screen.getByText(/Total Price: \$50/i);
+                  expect(totalPrice).toBeInTheDocument();
+                });
+              
+                test('displays message when no orders are found', async () => {
+                  jest.spyOn(global, 'fetch').mockImplementationOnce(() =>
+                    Promise.resolve({
+                      ok: true,
+                      json: () => Promise.resolve([]), // Simulate no orders
+                    })
+                  );
+              
+                  render(
+                    <Router>
+                      <OrdersPage />
+                    </Router>
+                  );
+              
+                  await waitFor(() => {
+                    const noOrdersText = screen.getByText(/No orders found./i);
+                    expect(noOrdersText).toBeInTheDocument();
+                });
+                })
+
+                test('renders loading spinner while loading', async () => {
+                    render(
+                      <Router>
+                        <OrdersPage />
+                      </Router>
+                    );
+                
+                    const loadingText = screen.getByText(/Loading your orders.../i);
+                    expect(loadingText).toBeInTheDocument();
+                  });
+                
+                  test('displays no orders message when no orders are found', async () => {
+                    fetch.mockResolvedValueOnce({
+                      ok: true,
+                      json: async () => [],
+                    });
+                
+                    render(
+                      <Router>
+                        <OrdersPage />
+                      </Router>
+                    );
+                
+                    await waitFor(() => {
+                      const noOrdersText = screen.getByText(/No orders found./i);
+                      expect(noOrdersText).toBeInTheDocument();
+                    });
+
+                    
+                  });
+                });
+            });
+        });
+    });
 });
