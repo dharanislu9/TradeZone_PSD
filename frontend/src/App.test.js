@@ -663,5 +663,29 @@ describe('Worthbar Component', () => {
   });
 });
 
+//dharani
+describe('Worthbar Component', () => {
+    it('displays the correct worthiness level on initial render', () => {
+      render(<ProductDetails initialWorthiness={75} />);
+      const worthinessLabel = screen.getByText(/Worthiness: 75%/i);
+      expect(worthinessLabel).toBeInTheDocument();
+      const worthSlider = screen.getByLabelText(/Worthiness:/i);
+      expect(worthSlider.value).toBe("75");
+    });
+  });
+  
+  //d
+  describe('Worthbar Component', () => {
+    it('applies the correct styling based on worthiness level', () => {
+      render(<ProductDetails initialWorthiness={30} />);
+      const worthinessLabel = screen.getByText(/Worthiness: 30%/i);
+      expect(worthinessLabel).toHaveClass('low-worthiness'); // Assuming CSS class for low worthiness
+  
+      fireEvent.change(screen.getByLabelText(/Worthiness:/i), { target: { value: 80 } });
+      const updatedWorthinessLabel = screen.getByText(/Worthiness: 80%/i);
+      expect(updatedWorthinessLabel).toHaveClass('high-worthiness'); // Assuming CSS class for high worthiness
+    });
+  });
+  
 
 });
